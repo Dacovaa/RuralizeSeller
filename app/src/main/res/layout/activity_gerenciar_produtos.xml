@@ -1,81 +1,79 @@
 <?xml version="1.0" encoding="utf-8"?>
-<LinearLayout
-    xmlns:android="http://schemas.android.com/apk/res/android"
-    xmlns:app="http://schemas.android.com/apk/res-auto"
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:orientation="vertical"
-    android:background="@color/bg_cream">
+    android:background="#FFFDF6">
 
-    <!-- Header -->
+    <!-- Header FIXO no topo -->
     <LinearLayout
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:orientation="horizontal"
-        android:gravity="center_vertical"
-        android:padding="16dp"
-        android:background="@color/white">
+        android:orientation="vertical"
+        android:padding="24dp"
+        android:background="#FFFDF6">
 
-        <ImageView
-            android:id="@+id/btnVoltar"
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_close_clear_cancel"
-            android:tint="@color/green_dark"
-            android:clickable="true"
-            android:focusable="true" />
-
-        <TextView
-            android:layout_width="0dp"
+        <LinearLayout
+            android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:layout_weight="1"
-            android:text="Meus Produtos"
-            android:textSize="20sp"
-            android:textColor="@color/text_primary"
-            android:textStyle="bold"
-            android:gravity="center" />
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:layout_marginBottom="24dp">
 
-        <ImageView
-            android:layout_width="24dp"
-            android:layout_height="24dp"
-            android:src="@android:drawable/ic_menu_add"
-            android:tint="@color/green_dark"
-            android:clickable="true"
-            android:focusable="true"
-            android:id="@+id/btnNovoProduto" />
+            <Button
+                android:id="@+id/btnVoltar"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Voltar"
+                android:textColor="#2D4A33"
+                android:background="@drawable/bg_button_primary"/>
+
+            <TextView
+                android:layout_width="0dp"
+                android:layout_height="wrap_content"
+                android:layout_weight="1"
+                android:text="Meus Produtos"
+                android:textSize="20sp"
+                android:textColor="#2D4A33"
+                android:textStyle="bold"
+                android:gravity="center" />
+
+            <View
+                android:layout_width="24dp"
+                android:layout_height="24dp" />
+        </LinearLayout>
+
+        <!-- Botão Novo Produto -->
+        <Button
+            android:id="@+id/btnNovoProduto"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:text="➕ Novo Produto"
+            android:textSize="16sp"
+            android:textColor="#2D4A33"
+            android:background="@drawable/bg_button_primary"
+            android:layout_marginBottom="16dp" />
+
+        <!-- Mensagem quando não há produtos -->
+        <TextView
+            android:id="@+id/txtSemProdutos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:text="Nenhum produto cadastrado\nClique no + para adicionar seu primeiro produto"
+            android:textSize="16sp"
+            android:textColor="#666666"
+            android:gravity="center"
+            android:padding="40dp"
+            android:visibility="visible" />
+
     </LinearLayout>
 
-    <!-- Lista de Produtos (vazia por enquanto) -->
-    <LinearLayout
+    <!-- RecyclerView ocupa o restante da tela e faz sua própria rolagem -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewProdutos"
         android:layout_width="match_parent"
         android:layout_height="0dp"
         android:layout_weight="1"
-        android:orientation="vertical"
-        android:gravity="center"
-        android:padding="32dp">
-
-        <ImageView
-            android:layout_width="80dp"
-            android:layout_height="80dp"
-            android:src="@android:drawable/ic_menu_gallery"
-            android:tint="@color/green_light" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Nenhum produto cadastrado"
-            android:textSize="16sp"
-            android:textColor="@color/green_dark"
-            android:layout_marginTop="16dp" />
-
-        <TextView
-            android:layout_width="wrap_content"
-            android:layout_height="wrap_content"
-            android:text="Clique no + para adicionar seu primeiro produto"
-            android:textSize="12sp"
-            android:textColor="@color/green_dark"
-            android:layout_marginTop="8dp"
-            android:textAlignment="center" />
-    </LinearLayout>
+        android:visibility="gone" />
 
 </LinearLayout>

@@ -107,7 +107,7 @@
         android:layout_width="0dp"
         android:layout_height="54dp"
         android:layout_marginTop="20dp"
-        android:background="@drawable/bg_button_primary"
+        android:background="@drawable/bg_button_outline"
         android:text="Entrar"
         android:textAllCaps="false"
         android:textColor="@color/green_dark"

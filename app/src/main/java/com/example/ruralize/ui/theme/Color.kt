@@ -2,10 +2,12 @@ package com.example.ruralize.ui.theme
 
 import androidx.compose.ui.graphics.Color
 
-val Purple80 = Color(0xFFD0BCFF)
-val PurpleGrey80 = Color(0xFFCCC2DC)
-val Pink80 = Color(0xFFEFB8C8)
+// Cores para tema escuro
+val Purple80 = Color(0xFFA8C7A1)  // green_light
+val PurpleGrey80 = Color(0xFF3D7C4A) // green_mid
+val Pink80 = Color(0xFF2F5D39) // green_dark
 
-val Purple40 = Color(0xFF6650a4)
-val PurpleGrey40 = Color(0xFF625b71)
-val Pink40 = Color(0xFF7D5260)
+// Cores para tema claro
+val Purple40 = Color(0xFF2F5D39) // green_dark
+val PurpleGrey40 = Color(0xFF3D7C4A) // green_mid
+val Pink40 = Color(0xFFA8C7A1) // green_light

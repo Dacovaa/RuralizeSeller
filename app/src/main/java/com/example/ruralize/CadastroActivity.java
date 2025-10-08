@@ -1,7 +1,11 @@
 package com.example.ruralize;
 
+import static androidx.core.content.ContextCompat.startActivity;
+
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
+import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
 import androidx.appcompat.app.AlertDialog;
@@ -9,12 +13,29 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class CadastroActivity extends ComponentActivity {
 
     private TextInputEditText edtEmpresa, edtCnpj, edtEmail, edtSenha;
     private TextInputLayout tilEmpresa, tilCnpj, tilEmail, tilSenha;
     private MaterialButton btnCadastrar;
+    private FirebaseAuth mAuth;
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -23,6 +44,9 @@ public class CadastroActivity extends ComponentActivity {
 
         inicializarComponentes();
         configurarCliques();
+
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
     }
 
     private void inicializarComponentes() {
@@ -74,12 +98,6 @@ public class CadastroActivity extends ComponentActivity {
             tilCnpj.setError("CNPJ deve ter 14 dígitos");
             return;
         }
-
-        if (!validarCNPJ(cnpj)) {
-            tilCnpj.setError("CNPJ inválido");
-            return;
-        }
-
         if (email.isEmpty()) {
             tilEmail.setError("Email é obrigatório");
             return;
@@ -116,23 +134,107 @@ public class CadastroActivity extends ComponentActivity {
         btnCadastrar.setEnabled(false);
         btnCadastrar.setText("CADASTRANDO...");
 
-        // Simular processo de cadastro
-        new android.os.Handler().postDelayed(() -> {
-            if (cadastrarNaAPI(empresa, cnpj, email, senha)) {
-                mostrarSucessoCadastro();
-            } else {
-                mostrarErroCadastro();
-            }
+        mAuth.createUserWithEmailAndPassword(email, senha)
+                .addOnCompleteListener(task -> {
+                    if (task.isSuccessful()) {
+                        // Usuário criado com sucesso
+                        String uid = mAuth.getCurrentUser().getUid();
 
-            // Restaurar botão
-            btnCadastrar.setEnabled(true);
-            btnCadastrar.setText("CADASTRAR");
-        }, 2000);
+                        // 2️ Chamar API da sua backend para salvar dados extras
+                        saveExtraUserData(uid, cnpj, empresa, email,senha);
+                    } else {
+                        // Erro ao criar usuário
+                        Toast.makeText(this, "Erro: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
+                    }
+                });
+
+        // Restaurar botão
+        btnCadastrar.setEnabled(true);
+        btnCadastrar.setText("CADASTRAR");
     }
 
-    private boolean cadastrarNaAPI(String empresa, String cnpj, String email, String senha) {
-        // TODO: Implementar chamada real à API
-        return true;
+    private void saveExtraUserData(String uid, String cnpj, String empresa, String email, String senha) {
+        // Mostrar loading
+        btnCadastrar.setEnabled(false);
+        btnCadastrar.setText("SALVANDO...");
+
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .build();
+
+        try {
+            // Criar o JSON object com os dados
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("email", email);
+            jsonBody.put("password", senha);
+            jsonBody.put("displayName", empresa);
+            jsonBody.put("cnpj", cnpj);
+
+            Log.d("CADASTRO_API", "Enviando: " + jsonBody.toString());
+
+            // Criar o request body
+            RequestBody body = RequestBody.create(
+                    jsonBody.toString(),
+                    MediaType.parse("application/json; charset=utf-8")
+            );
+
+            // Criar a request
+            Request request = new Request.Builder()
+                    .url("https://ruralize-api.vercel.app/auth/signup")
+                    .post(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            // Fazer a chamada assíncrona
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    Log.e("CADASTRO_API", "Erro na chamada: " + e.getMessage());
+                    runOnUiThread(() -> {
+                        mostrarErroCadastro("Erro de conexão: " + e.getMessage());
+                        btnCadastrar.setEnabled(true);
+                        btnCadastrar.setText("CADASTRAR");
+                    });
+                }
+
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    final String responseBody = response.body().string();
+                    final int statusCode = response.code();
+
+                    Log.d("CADASTRO_API", "Resposta: " + responseBody);
+                    Log.d("CADASTRO_API", "Código: " + statusCode);
+
+                    runOnUiThread(() -> {
+                        btnCadastrar.setEnabled(true);
+                        btnCadastrar.setText("CADASTRAR");
+
+                        if (response.isSuccessful()) {
+                            // Cadastro bem-sucedido na API
+                            mostrarSucessoCadastro();
+                        } else {
+                            try {
+                                JSONObject errorJson = new JSONObject(responseBody);
+                                String errorMessage = errorJson.optString("message", "Erro desconhecido");
+                                mostrarErroCadastro();
+                            } catch (JSONException e) {
+                                mostrarErroCadastro();
+                            }
+                        }
+                    });
+                }
+            });
+
+        } catch (JSONException e) {
+            Log.e("CADASTRO_API", "Erro ao criar JSON: " + e.getMessage());
+            runOnUiThread(() -> {
+                btnCadastrar.setEnabled(true);
+                btnCadastrar.setText("CADASTRAR");
+                mostrarErroCadastro();
+            });
+        }
+    }
     }
 
     private void mostrarSucessoCadastro() {
@@ -154,41 +256,3 @@ public class CadastroActivity extends ComponentActivity {
                 .setPositiveButton("OK", null)
                 .show();
     }
-
-    private boolean validarCNPJ(String cnpj) {
-        // Remover caracteres não numéricos (caso ainda tenha)
-        cnpj = cnpj.replaceAll("[^0-9]", "");
-
-        if (cnpj.length() != 14) return false;
-
-        // Verificar se todos os dígitos são iguais
-        if (cnpj.matches("(\\d)\\1{13}")) return false;
-
-        try {
-            // Cálculo do primeiro dígito verificador
-            int soma = 0;
-            int peso = 2;
-            for (int i = 11; i >= 0; i--) {
-                soma += (cnpj.charAt(i) - '0') * peso;
-                peso = (peso == 9) ? 2 : peso + 1;
-            }
-            int digito1 = 11 - (soma % 11);
-            if (digito1 >= 10) digito1 = 0;
-
-            // Cálculo do segundo dígito verificador
-            soma = 0;
-            peso = 2;
-            for (int i = 12; i >= 0; i--) {
-                soma += (cnpj.charAt(i) - '0') * peso;
-                peso = (peso == 9) ? 2 : peso + 1;
-            }
-            int digito2 = 11 - (soma % 11);
-            if (digito2 >= 10) digito2 = 0;
-
-            // Verificar se os dígitos calculados conferem com os informados
-            return (cnpj.charAt(12) - '0' == digito1) && (cnpj.charAt(13) - '0' == digito2);
-        } catch (Exception e) {
-            return false;
-        }
-    }
-}

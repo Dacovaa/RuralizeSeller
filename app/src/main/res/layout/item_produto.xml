@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_edittext_simple"
+    android:padding="16dp"
+    android:layout_marginBottom="8dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <!-- Imagem do produto -->
+        <ImageView
+            android:id="@+id/imgProduto"
+            android:layout_width="60dp"
+            android:layout_height="60dp"
+            android:scaleType="centerCrop"
+            android:background="@color/white"
+            android:src="@drawable/ic_placeholder"
+            android:layout_marginEnd="12dp" />
+
+        <!-- Informações do produto -->
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txtTitulo"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Título do Produto"
+                android:textSize="16sp"
+                android:textColor="#2D4A33"
+                android:textStyle="bold"
+                android:layout_marginBottom="4dp" />
+
+            <TextView
+                android:id="@+id/txtPreco"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="R$ 0,00"
+                android:textSize="14sp"
+                android:textColor="#4A7C59"
+                android:textStyle="bold"
+                android:layout_marginBottom="2dp" />
+
+            <TextView
+                android:id="@+id/txtEstoque"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Estoque: 0"
+                android:textSize="12sp"
+                android:textColor="#666666" />
+
+            <TextView
+                android:id="@+id/txtCategoria"
+                android:layout_width="match_parent"
+                android:layout_height="wrap_content"
+                android:text="Categoria"
+                android:textSize="12sp"
+                android:textColor="#666666" />
+
+        </LinearLayout>
+
+        <!-- Botões de ação -->
+        <LinearLayout
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:orientation="vertical">
+
+            <Button
+                android:id="@+id/btnEditar"
+                android:layout_width="80dp"
+                android:layout_height="30dp"
+                android:text="Editar"
+                android:textSize="10sp"
+                android:background="@drawable/bg_button_outline_simple"
+                android:textColor="#4A7C59"
+                android:layout_marginBottom="4dp" />
+
+            <Button
+                android:id="@+id/btnExcluir"
+                android:layout_width="80dp"
+                android:layout_height="30dp"
+                android:text="Excluir"
+                android:textSize="10sp"
+                android:background="@drawable/bg_button_primary"
+                android:textColor="#2D4A33" />
+
+        </LinearLayout>
+
+    </LinearLayout>
+
+    <!-- Descrição -->
+    <TextView
+        android:id="@+id/txtDescricao"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Descrição do produto..."
+        android:textSize="12sp"
+        android:textColor="#666666"
+        android:layout_marginTop="8dp"
+        android:maxLines="2"
+        android:ellipsize="end" />
+
+</LinearLayout>

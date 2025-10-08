@@ -1,8 +1,9 @@
 package com.example.ruralize;
 
 import android.content.Intent;
+import android.content.SharedPreferences;
 import android.os.Bundle;
-import android.widget.Toast;
+import android.util.Log;
 
 import androidx.activity.ComponentActivity;
 import androidx.appcompat.app.AlertDialog;
@@ -10,6 +11,31 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.gson.Gson;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.BufferedReader;
+import java.io.IOException;
+import java.io.InputStreamReader;
+import java.io.OutputStream;
+import java.net.HttpURLConnection;
+import java.net.URL;
+import java.util.ArrayList;
+import java.util.List;
+import java.util.Scanner;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
+
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
 
 public class Activity extends ComponentActivity {
 
@@ -17,13 +43,28 @@ public class Activity extends ComponentActivity {
     private TextInputLayout tilCnpj, tilSenha;
     private MaterialButton btnEntrar, btnCadastro;
 
+    private OkHttpClient client;
+    private Gson gson;
+    private static final String TAG = "LoginActivity";
+
+    private FirebaseAuth mAuth;
+
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity);
 
+        // Inicializar OkHttpClient e Gson
+        client = new OkHttpClient();
+        gson = new Gson();
+
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
+
         inicializarComponentes();
         configurarCliques();
+
+
     }
 
     private void inicializarComponentes() {
@@ -37,7 +78,7 @@ public class Activity extends ComponentActivity {
 
     private void configurarCliques() {
         // Esqueceu a senha
-        findViewById(R.id.tvForgot).setOnClickListener(v -> abrirRecuperacaoSenha());
+        findViewById(R.id.tvForgot).setOnClickListener(v -> new RecuperacaoSenhaActivity());
 
         // Botão Entrar
         btnEntrar.setOnClickListener(v -> validarELogar());
@@ -65,11 +106,6 @@ public class Activity extends ComponentActivity {
             return;
         }
 
-        if (!validarCNPJ(cnpj)) {
-            tilCnpj.setError("CNPJ inválido");
-            return;
-        }
-
         if (senha.isEmpty()) {
             tilSenha.setError("Senha é obrigatória");
             return;
@@ -84,85 +120,49 @@ public class Activity extends ComponentActivity {
         fazerLogin(cnpj, senha);
     }
 
-    private void fazerLogin(String cnpj, String senha) {
+    private void fazerLogin(String email, String senha) {
         // Mostrar loading
         btnEntrar.setEnabled(false);
         btnEntrar.setText("ENTRANDO...");
 
         // Simular processo de login
         new android.os.Handler().postDelayed(() -> {
-            if (autenticarNaAPI(cnpj, senha)) {
-                // Login bem-sucedido - redirecionar para Dashboard
-                Intent intent = new Intent(Activity.this, DashboardActivity.class);
-                startActivity(intent);
-                finish();
-            } else {
-                // Login falhou
-                mostrarErroLogin();
-                btnEntrar.setEnabled(true);
-                btnEntrar.setText("ENTRAR");
-            }
+            autenticarComFirebase(email, senha);
         }, 2000);
     }
 
-    private boolean autenticarNaAPI(String cnpj, String senha) {
-        // TODO: Implementar chamada real à API
-        // Por enquanto, simula um login bem-sucedido para CNPJ específico
-        return cnpj.equals("12345678000195") && senha.equals("123456");
-    }
+    private void autenticarComFirebase(String email, String senha) {
+        // Primeiro, precisamos obter o email associado ao CNPJ
+        // Você pode ter uma coleção no Firestore que mapeia CNPJ para email
+        // Por enquanto, vou assumir que você tem uma forma de obter o email do CNPJ
 
-    private void mostrarErroLogin() {
-        new AlertDialog.Builder(this)
-                .setTitle("Erro no Login")
-                .setMessage("CNPJ ou senha incorretos. Verifique suas credenciais.")
-                .setPositiveButton("OK", null)
-                .show();
-    }
+        // Se você tiver uma API para mapear CNPJ para email, use aqui:
 
-    private void abrirRecuperacaoSenha() {
-        Intent intent = new Intent(this, RecuperacaoSenhaActivity.class);
-        startActivity(intent);
-    }
+        if (email == null || email.isEmpty()) {
+            // Se não encontrou email para o CNPJ
+            btnEntrar.setEnabled(true);
+            btnEntrar.setText("ENTRAR");
+            return;
+        }
 
+
+        mAuth.signInWithEmailAndPassword(email, senha)
+                .addOnCompleteListener(this, task -> {
+                    if (task.isSuccessful()) {
+                        Intent intent = new Intent(Activity.this, DashboardActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        // Falha no login
+                        runOnUiThread(() -> {
+                            btnEntrar.setEnabled(true);
+                            btnEntrar.setText("ENTRAR");
+                        });
+                    }
+                });
+    }
     private void abrirCadastro() {
         Intent intent = new Intent(this, CadastroActivity.class);
         startActivity(intent);
-    }
-
-    private boolean validarCNPJ(String cnpj) {
-        // Remover caracteres não numéricos (caso ainda tenha)
-        cnpj = cnpj.replaceAll("[^0-9]", "");
-
-        if (cnpj.length() != 14) return false;
-
-        // Verificar se todos os dígitos são iguais
-        if (cnpj.matches("(\\d)\\1{13}")) return false;
-
-        try {
-            // Cálculo do primeiro dígito verificador
-            int soma = 0;
-            int peso = 2;
-            for (int i = 11; i >= 0; i--) {
-                soma += (cnpj.charAt(i) - '0') * peso;
-                peso = (peso == 9) ? 2 : peso + 1;
-            }
-            int digito1 = 11 - (soma % 11);
-            if (digito1 >= 10) digito1 = 0;
-
-            // Cálculo do segundo dígito verificador
-            soma = 0;
-            peso = 2;
-            for (int i = 12; i >= 0; i--) {
-                soma += (cnpj.charAt(i) - '0') * peso;
-                peso = (peso == 9) ? 2 : peso + 1;
-            }
-            int digito2 = 11 - (soma % 11);
-            if (digito2 >= 10) digito2 = 0;
-
-            // Verificar se os dígitos calculados conferem com os informados
-            return (cnpj.charAt(12) - '0' == digito1) && (cnpj.charAt(13) - '0' == digito2);
-        } catch (Exception e) {
-            return false;
-        }
     }
 }

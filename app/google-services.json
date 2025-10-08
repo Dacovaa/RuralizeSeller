@@ -1,0 +1,39 @@
+{
+  "project_info": {
+    "project_number": "523466988155",
+    "project_id": "ruralize-seller",
+    "storage_bucket": "ruralize-seller.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:523466988155:android:5d3ead9fcea3071e9720de",
+        "android_client_info": {
+          "package_name": "com.example.ruralize"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "523466988155-7klmue982k0tvsltn1kot0l0ckcsdsk2.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyBtjYZAbAoeljE7v8WvoSlG43FIg5k6q00"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "523466988155-7klmue982k0tvsltn1kot0l0ckcsdsk2.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}

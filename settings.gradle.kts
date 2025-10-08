@@ -19,5 +19,5 @@ dependencyResolutionManagement {
     }
 }
 
-rootProject.name = "RuralizeSeller"
+rootProject.name = "Ruralize"
 include(":app")

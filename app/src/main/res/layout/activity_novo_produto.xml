@@ -1,0 +1,146 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout
+    xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:padding="24dp"
+    android:background="#FFFDF6">
+
+    <!-- Header -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginBottom="24dp">
+
+        <Button
+            android:id="@+id/btnVoltar"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Voltar"
+            android:textColor="#2D4A33"
+            android:background="@drawable/bg_button_primary"/>
+
+        <TextView
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="Novo Produto"
+            android:textSize="20sp"
+            android:textColor="#2D4A33"
+            android:textStyle="bold"
+            android:gravity="center" />
+
+        <View
+            android:layout_width="24dp"
+            android:layout_height="24dp" />
+    </LinearLayout>
+
+    <!-- Adicionar Fotos -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Adicione fotos do seu produto:"
+        android:textSize="16sp"
+        android:textColor="#2D4A33"
+        android:textStyle="bold"
+        android:layout_marginBottom="8dp" />
+
+    <!-- Container para thumbnails -->
+    <HorizontalScrollView
+        android:layout_width="match_parent"
+        android:layout_height="140dp"
+        android:layout_marginBottom="8dp">
+
+        <LinearLayout
+            android:id="@+id/containerFotos"
+            android:layout_width="wrap_content"
+            android:layout_height="match_parent"
+            android:orientation="horizontal"
+            android:gravity="center_vertical"
+            android:padding="8dp">
+
+            <!-- As imagens serão adicionadas aqui dinamicamente -->
+        </LinearLayout>
+    </HorizontalScrollView>
+
+    <!-- Botão Adicionar Foto e Contador -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center"
+        android:layout_marginBottom="16dp">
+
+        <Button
+            android:id="@+id/btnAdicionarFoto"
+            android:layout_width="0dp"
+            android:layout_height="60dp"
+            android:layout_weight="1"
+            android:text="➕ Adicionar Fotos"
+            android:textSize="14sp"
+            android:textColor="#4A7C59"
+            android:background="@drawable/bg_button_outline_simple"
+            android:layout_marginEnd="8dp" />
+
+        <TextView
+            android:id="@+id/txtContadorFotos"
+            android:layout_width="80dp"
+            android:layout_height="60dp"
+            android:gravity="center"
+            android:text="0/5 fotos"
+            android:textSize="12sp"
+            android:textColor="#666666"
+            android:background="@drawable/bg_button_outline_simple" />
+
+    </LinearLayout>
+
+    <!-- Resto do formulário (mantido igual) -->
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="De um título ao anúncio:"
+        android:textSize="14sp"
+        android:textColor="#2D4A33"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/edtTitulo"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:hint="Ex: Arroz Orgânico Premium"
+        android:background="@drawable/bg_edittext_simple"
+        android:padding="12dp"
+        android:layout_marginBottom="16dp" />
+
+    <TextView
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Descreva seu produto:"
+        android:textSize="14sp"
+        android:textColor="#2D4A33"
+        android:layout_marginBottom="4dp" />
+
+    <EditText
+        android:id="@+id/edtDescricao"
+        android:layout_width="match_parent"
+        android:layout_height="120dp"
+        android:hint="Ex: Arroz orgânico cultivado sem agrotóxicos..."
+        android:gravity="top"
+        android:inputType="textMultiLine"
+        android:background="@drawable/bg_edittext_simple"
+        android:padding="12dp"
+        android:layout_marginBottom="24dp" />
+
+    <Button
+        android:id="@+id/btnEnviar"
+        android:layout_width="match_parent"
+        android:layout_height="54dp"
+        android:text="Enviar"
+        android:textSize="16sp"
+        android:textColor="#2D4A33"
+        android:background="@drawable/bg_button_primary" />
+
+</LinearLayout>

@@ -12,7 +12,6 @@ public class DashboardActivity extends ComponentActivity {
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_dashboard);
-
         configurarCliques();
     }
 
@@ -33,7 +32,10 @@ public class DashboardActivity extends ComponentActivity {
 
         // Botão Sair
         findViewById(R.id.tvSair).setOnClickListener(v -> {
-            finish(); // Volta para a tela de login
+            Intent intent = new Intent(DashboardActivity.this, Activity.class);
+            intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TOP | Intent.FLAG_ACTIVITY_NEW_TASK);
+            startActivity(intent);
+            finish();
         });
     }
 }

@@ -2,39 +2,62 @@ package com.example.ruralize;
 
 import android.content.Intent;
 import android.os.Bundle;
+import android.util.Log;
 import android.widget.TextView;
 import android.widget.Toast;
 
 import androidx.activity.ComponentActivity;
+import androidx.annotation.NonNull;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import org.json.JSONException;
+import org.json.JSONObject;
+
+import java.io.IOException;
+import java.text.SimpleDateFormat;
+import java.util.Date;
+import java.util.Locale;
+import java.util.concurrent.TimeUnit;
+
+import okhttp3.Call;
+import okhttp3.Callback;
+import okhttp3.MediaType;
+import okhttp3.OkHttpClient;
+import okhttp3.Request;
+import okhttp3.RequestBody;
+import okhttp3.Response;
 
 public class MinhaContaActivity extends ComponentActivity {
 
-    private TextInputEditText edtEmpresa, edtCnpj, edtEmail, edtTelefone;
-    private TextInputLayout tilEmpresa, tilCnpj, tilEmail, tilTelefone;
+    private TextInputEditText edtEmpresa, edtCnpj, edtEmail;
+    private TextInputLayout tilEmpresa, tilCnpj, tilEmail;
     private MaterialButton btnSalvar, btnAlterarSenha, btnSair;
     private TextView txtDataCadastro, txtStatus;
 
-    // Dados do usuário (simulados)
-    private String usuarioEmpresa = "AgroTech Solutions LTDA";
-    private String usuarioCnpj = "12345678000195";
-    private String usuarioEmail = "contato@agrotech.com.br";
-    private String usuarioTelefone = "(11) 99999-9999";
-    private String usuarioDataCadastro = "15/03/2024";
+    private FirebaseAuth mAuth;
+
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_minha_conta);
 
+        mAuth = FirebaseAuth.getInstance();
+
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser != null) {
+            String uid = currentUser.getUid();
+            buscarDadosUsuarioDaApi(uid);
+        }
+
         inicializarComponentes();
-        carregarDadosUsuario();
         configurarCliques();
-        configurarMascaras();
     }
 
     private void inicializarComponentes() {
@@ -42,13 +65,11 @@ public class MinhaContaActivity extends ComponentActivity {
         tilEmpresa = findViewById(R.id.tilEmpresa);
         tilCnpj = findViewById(R.id.tilCnpj);
         tilEmail = findViewById(R.id.tilEmail);
-        tilTelefone = findViewById(R.id.tilTelefone);
 
         // TextInputEditTexts
         edtEmpresa = findViewById(R.id.edtEmpresa);
         edtCnpj = findViewById(R.id.edtCnpj);
         edtEmail = findViewById(R.id.edtEmail);
-        edtTelefone = findViewById(R.id.edtTelefone);
 
         // Botões
         btnSalvar = findViewById(R.id.btnSalvar);
@@ -60,17 +81,67 @@ public class MinhaContaActivity extends ComponentActivity {
         txtStatus = findViewById(R.id.txtStatus);
     }
 
-    private void carregarDadosUsuario() {
-        // Preencher campos com dados do usuário
-        edtEmpresa.setText(usuarioEmpresa);
-        edtCnpj.setText(usuarioCnpj);
-        edtEmail.setText(usuarioEmail);
-        edtTelefone.setText(usuarioTelefone);
+    private void buscarDadosUsuarioDaApi(String uid) {
 
-        // Preencher informações de cadastro
-        txtDataCadastro.setText(usuarioDataCadastro);
-        txtStatus.setText("Ativa");
-        txtStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+        String url = String.format("https://ruralize-api.vercel.app/auth/%s", uid);
+
+        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+
+        okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder()
+                .url(url)
+                .get();
+
+        okhttp3.Request request = requestBuilder.build();
+
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(MinhaContaActivity.this, "Falha ao carregar dados", Toast.LENGTH_SHORT).show();
+                });
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                if (response.isSuccessful()) {
+                    String responseBody = response.body().string();
+
+                    try {
+                        org.json.JSONObject json = new org.json.JSONObject(responseBody);
+
+                        String empresa = json.getString("displayName");
+                        String cnpj = json.getString("cnpj");
+                        String email = json.getString("email");
+                        JSONObject dataCadastro = json.getJSONObject("createdAt");
+
+                        long seconds = dataCadastro.getLong("_seconds");
+                        long nanos = dataCadastro.getLong("_nanoseconds");
+
+                        long timestampMillis = seconds * 1000 + nanos / 1000000;
+                        Date date = new Date(timestampMillis);
+
+                        SimpleDateFormat displayFormat = new SimpleDateFormat("dd/MM/yyyy", Locale.getDefault());
+                        String dataFormatada = displayFormat.format(date);
+
+                        runOnUiThread(() -> {
+                            edtEmpresa.setText(empresa);
+                            edtCnpj.setText(cnpj);
+                            edtEmail.setText(email);
+                            txtDataCadastro.setText(dataFormatada);
+                            txtStatus.setText("Ativa");
+                            txtStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark));
+                        });
+
+                    } catch (Exception e) {
+                        e.printStackTrace();
+                    }
+                } else {
+                    runOnUiThread(() -> {
+                        Toast.makeText(MinhaContaActivity.this, "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
+                    });
+                }
+            }
+        });
     }
 
     private void configurarCliques() {
@@ -87,15 +158,10 @@ public class MinhaContaActivity extends ComponentActivity {
         btnSair.setOnClickListener(v -> confirmarSaida());
     }
 
-    private void configurarMascaras() {
-        // Máscara para telefone
-        edtTelefone.addTextChangedListener(new TelefoneMask());
-    }
-
     private void validarESalvar() {
         String empresa = edtEmpresa.getText().toString().trim();
         String email = edtEmail.getText().toString().trim();
-        String telefone = edtTelefone.getText().toString().trim();
+        String cnpj = edtCnpj.getText().toString().trim();
 
         // Limpar erros anteriores
         limparErros();
@@ -121,55 +187,121 @@ public class MinhaContaActivity extends ComponentActivity {
             return;
         }
 
-        if (telefone.isEmpty()) {
-            tilTelefone.setError("Telefone é obrigatório");
-            return;
-        }
-
-        String telefoneLimpo = telefone.replaceAll("[^0-9]", "");
-        if (telefoneLimpo.length() < 10) {
-            tilTelefone.setError("Telefone inválido");
-            return;
-        }
-
         // Se todas as validações passarem, salvar alterações
-        salvarAlteracoes(empresa, email, telefone);
+        salvarAlteracoes(empresa, email, cnpj);
     }
 
     private void limparErros() {
         tilEmpresa.setError(null);
         tilEmail.setError(null);
-        tilTelefone.setError(null);
     }
 
-    private void salvarAlteracoes(String empresa, String email, String telefone) {
-        // Mostrar loading
+    private void salvarAlteracoes(String empresa, String email, String cnpj) {
         btnSalvar.setEnabled(false);
-        btnSalvar.setText("SALVANDO...");
+        btnSalvar.setText("Salvando...");
 
-        // Simular salvamento (substituir por chamada à API)
-        new android.os.Handler().postDelayed(() -> {
-            // Atualizar dados do usuário
-            usuarioEmpresa = empresa;
-            usuarioEmail = email;
-            usuarioTelefone = telefone;
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .build();
 
-            // TODO: Salvar no banco de dados real
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String uid = currentUser.getUid();
 
-            mostrarSucessoSalvamento();
+        try {
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("uid", uid);
+            jsonBody.put("email", email);
+            jsonBody.put("displayName", empresa);
+            jsonBody.put("cnpj", cnpj);
 
-            // Restaurar botão
-            btnSalvar.setEnabled(true);
-            btnSalvar.setText("SALVAR ALTERAÇÕES");
-        }, 1500);
+
+            RequestBody body = RequestBody.create(
+                    jsonBody.toString(),
+                    MediaType.parse("application/json; charset=utf-8")
+            );
+
+            Request request = new Request.Builder()
+                    .url("https://ruralize-api.vercel.app/auth/update")
+                    .patch(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> {
+                        mostrarErroAtualizar();
+                        btnSalvar.setEnabled(true);
+                        btnSalvar.setText("Salvar alterações");
+                    });
+                }
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    final String responseBody = response.body().string();
+                    final int statusCode = response.code();
+
+                    runOnUiThread(() -> {
+                        btnSalvar.setEnabled(true);
+                        btnSalvar.setText("Salvar alterações");
+
+                        if (response.isSuccessful()) {
+                            mostrarSucessoAtualizar();
+                        } else {
+                            try {
+                                JSONObject errorJson = new JSONObject(responseBody);
+                                String errorMessage = errorJson.optString("message", "Erro desconhecido");
+                            } catch (JSONException e) {
+                            }
+                        }
+                    });
+                }
+            });
+
+        } catch (JSONException e) {
+            runOnUiThread(() -> {
+                btnSalvar.setEnabled(true);
+                btnSalvar.setText("Salvar alterações");
+                mostrarErroAtualizar();
+            });
+        }
     }
 
-    private void mostrarSucessoSalvamento() {
-        Toast.makeText(this, "Dados atualizados com sucesso!", Toast.LENGTH_SHORT).show();
+
+    private void mostrarErroAtualizar() {
+        new AlertDialog.Builder(this)
+                .setTitle("Erro ao atualizar cadastro")
+                .setMessage("Não foi possível atualizar seus dados. Tente novamente.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void mostrarErroAtualizarSenha() {
+        new AlertDialog.Builder(this)
+                .setTitle("Erro ao atualizar senha")
+                .setMessage("Não foi possível atualizar sua senha. Tente novamente.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void mostrarSucessoAtualizar() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cadastro Atualizado!")
+                .setMessage("Sua conta foi atualizada com sucesso!")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
+    private void mostrarSucessoAtualizarSenha() {
+        new AlertDialog.Builder(this)
+                .setTitle("Senha Atualizada!")
+                .setMessage("Sua senha foi atualizada com sucesso!")
+                .setPositiveButton("OK", null)
+                .show();
     }
 
     private void abrirAlteracaoSenha() {
-        // Criar diálogo para alteração de senha
+
         AlertDialog.Builder builder = new AlertDialog.Builder(this);
         builder.setTitle("Alterar Senha");
 
@@ -195,13 +327,11 @@ public class MinhaContaActivity extends ComponentActivity {
     }
 
     private void validarEAlterarSenha(String senhaAtual, String novaSenha, String confirmarSenha) {
-        // Validações básicas
+
         if (senhaAtual.isEmpty()) {
             Toast.makeText(this, "Digite sua senha atual", Toast.LENGTH_SHORT).show();
             return;
         }
-
-        // TODO: Verificar se senha atual está correta (comparar com banco de dados)
 
         if (novaSenha.isEmpty()) {
             Toast.makeText(this, "Digite a nova senha", Toast.LENGTH_SHORT).show();
@@ -218,8 +348,69 @@ public class MinhaContaActivity extends ComponentActivity {
             return;
         }
 
-        // Simular alteração de senha
-        Toast.makeText(this, "Senha alterada com sucesso!", Toast.LENGTH_SHORT).show();
+        OkHttpClient client = new OkHttpClient.Builder()
+                .connectTimeout(15, TimeUnit.SECONDS)
+                .readTimeout(15, TimeUnit.SECONDS)
+                .build();
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        String uid = currentUser.getUid();
+
+        try {
+            JSONObject jsonBody = new JSONObject();
+            jsonBody.put("uid", uid);
+            jsonBody.put("password", novaSenha);
+
+
+            RequestBody body = RequestBody.create(
+                    jsonBody.toString(),
+                    MediaType.parse("application/json; charset=utf-8")
+            );
+
+            Request request = new Request.Builder()
+                    .url("https://ruralize-api.vercel.app/auth/updatePassword")
+                    .patch(body)
+                    .addHeader("Content-Type", "application/json")
+                    .build();
+
+            client.newCall(request).enqueue(new Callback() {
+                @Override
+                public void onFailure(Call call, IOException e) {
+                    runOnUiThread(() -> {
+                        mostrarErroAtualizarSenha();
+                        btnSalvar.setEnabled(true);
+                        btnSalvar.setText("Salvar alterações");
+                    });
+                }
+                @Override
+                public void onResponse(Call call, Response response) throws IOException {
+                    final String responseBody = response.body().string();
+                    final int statusCode = response.code();
+
+                    runOnUiThread(() -> {
+                        btnSalvar.setEnabled(true);
+                        btnSalvar.setText("Salvar alterações");
+
+                        if (response.isSuccessful()) {
+                            mostrarSucessoAtualizarSenha();
+                        } else {
+                            try {
+                                JSONObject errorJson = new JSONObject(responseBody);
+                                String errorMessage = errorJson.optString("message", "Erro desconhecido");
+                            } catch (JSONException e) {
+                            }
+                        }
+                    });
+                }
+            });
+
+        } catch (JSONException e) {
+            runOnUiThread(() -> {
+                btnSalvar.setEnabled(true);
+                btnSalvar.setText("Salvar alterações");
+                mostrarErroAtualizar();
+            });
+        }
     }
 
     private void confirmarSaida() {
@@ -234,58 +425,12 @@ public class MinhaContaActivity extends ComponentActivity {
     }
 
     private void sairDaConta() {
-        // TODO: Implementar lógica de logout (limpar sessão, etc.)
 
-        // Voltar para tela de login
         Intent intent = new Intent(this, Activity.class);
         intent.setFlags(Intent.FLAG_ACTIVITY_CLEAR_TASK | Intent.FLAG_ACTIVITY_NEW_TASK);
         startActivity(intent);
         finish();
 
         Toast.makeText(this, "Você saiu da conta", Toast.LENGTH_SHORT).show();
-    }
-
-    // Classe para máscara de telefone
-    private static class TelefoneMask implements android.text.TextWatcher {
-        private boolean isUpdating = false;
-
-        @Override
-        public void beforeTextChanged(CharSequence s, int start, int count, int after) {}
-
-        @Override
-        public void onTextChanged(CharSequence s, int start, int before, int count) {}
-
-        @Override
-        public void afterTextChanged(android.text.Editable s) {
-            if (isUpdating) {
-                isUpdating = false;
-                return;
-            }
-
-            String str = s.toString().replaceAll("[^\\d]", "");
-            if (str.length() > 11) {
-                str = str.substring(0, 11);
-            }
-
-            StringBuilder formatted = new StringBuilder();
-            if (str.length() >= 2) {
-                formatted.append("(").append(str.substring(0, 2)).append(") ");
-                if (str.length() >= 7) {
-                    formatted.append(str.substring(2, 7)).append("-");
-                    if (str.length() >= 11) {
-                        formatted.append(str.substring(7, 11));
-                    } else {
-                        formatted.append(str.substring(7));
-                    }
-                } else {
-                    formatted.append(str.substring(2));
-                }
-            } else {
-                formatted.append(str);
-            }
-
-            isUpdating = true;
-            s.replace(0, s.length(), formatted.toString());
-        }
     }
 }

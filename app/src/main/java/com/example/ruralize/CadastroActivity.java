@@ -49,6 +49,26 @@ public class CadastroActivity extends ComponentActivity {
         mAuth = FirebaseAuth.getInstance();
     }
 
+    private void mostrarSucessoCadastro() {
+        new AlertDialog.Builder(this)
+                .setTitle("Cadastro Realizado!")
+                .setMessage("Sua conta foi criada com sucesso. Faça login para continuar.")
+                .setPositiveButton("OK", (dialog, which) -> {
+                    startActivity(new Intent(this, Activity.class));
+                    finish();
+                })
+                .setCancelable(false)
+                .show();
+    }
+
+    private void mostrarErroCadastro() {
+        new AlertDialog.Builder(this)
+                .setTitle("Erro no Cadastro")
+                .setMessage("Não foi possível criar sua conta. Tente novamente.")
+                .setPositiveButton("OK", null)
+                .show();
+    }
+
     private void inicializarComponentes() {
         edtEmpresa = findViewById(R.id.edtEmpresa);
         edtCnpj = findViewById(R.id.edtCnpj);
@@ -132,31 +152,25 @@ public class CadastroActivity extends ComponentActivity {
     private void fazerCadastro(String empresa, String cnpj, String email, String senha) {
         // Mostrar loading
         btnCadastrar.setEnabled(false);
-        btnCadastrar.setText("CADASTRANDO...");
+        btnCadastrar.setText("Cadastrando...");
 
         mAuth.createUserWithEmailAndPassword(email, senha)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        // Usuário criado com sucesso
-                        String uid = mAuth.getCurrentUser().getUid();
-
-                        // 2️ Chamar API da sua backend para salvar dados extras
-                        saveExtraUserData(uid, cnpj, empresa, email,senha);
+                        saveExtraUserData(cnpj, empresa, email,senha);
                     } else {
-                        // Erro ao criar usuário
                         Toast.makeText(this, "Erro: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }
                 });
 
-        // Restaurar botão
         btnCadastrar.setEnabled(true);
-        btnCadastrar.setText("CADASTRAR");
+        btnCadastrar.setText("Cadastrar");
     }
 
-    private void saveExtraUserData(String uid, String cnpj, String empresa, String email, String senha) {
-        // Mostrar loading
+    private void saveExtraUserData(String cnpj, String empresa, String email, String senha) {
+
         btnCadastrar.setEnabled(false);
-        btnCadastrar.setText("SALVANDO...");
+        btnCadastrar.setText("Salvando...");
 
         OkHttpClient client = new OkHttpClient.Builder()
                 .connectTimeout(15, TimeUnit.SECONDS)
@@ -164,14 +178,11 @@ public class CadastroActivity extends ComponentActivity {
                 .build();
 
         try {
-            // Criar o JSON object com os dados
             JSONObject jsonBody = new JSONObject();
             jsonBody.put("email", email);
             jsonBody.put("password", senha);
             jsonBody.put("displayName", empresa);
             jsonBody.put("cnpj", cnpj);
-
-            Log.d("CADASTRO_API", "Enviando: " + jsonBody.toString());
 
             // Criar o request body
             RequestBody body = RequestBody.create(
@@ -179,39 +190,31 @@ public class CadastroActivity extends ComponentActivity {
                     MediaType.parse("application/json; charset=utf-8")
             );
 
-            // Criar a request
             Request request = new Request.Builder()
                     .url("https://ruralize-api.vercel.app/auth/signup")
                     .post(body)
                     .addHeader("Content-Type", "application/json")
                     .build();
 
-            // Fazer a chamada assíncrona
             client.newCall(request).enqueue(new Callback() {
                 @Override
                 public void onFailure(Call call, IOException e) {
-                    Log.e("CADASTRO_API", "Erro na chamada: " + e.getMessage());
                     runOnUiThread(() -> {
-                        mostrarErroCadastro("Erro de conexão: " + e.getMessage());
+                        mostrarErroCadastro();
                         btnCadastrar.setEnabled(true);
-                        btnCadastrar.setText("CADASTRAR");
+                        btnCadastrar.setText("Cadastrar");
                     });
                 }
-
                 @Override
                 public void onResponse(Call call, Response response) throws IOException {
                     final String responseBody = response.body().string();
                     final int statusCode = response.code();
 
-                    Log.d("CADASTRO_API", "Resposta: " + responseBody);
-                    Log.d("CADASTRO_API", "Código: " + statusCode);
-
                     runOnUiThread(() -> {
                         btnCadastrar.setEnabled(true);
-                        btnCadastrar.setText("CADASTRAR");
+                        btnCadastrar.setText("Cadastrar");
 
                         if (response.isSuccessful()) {
-                            // Cadastro bem-sucedido na API
                             mostrarSucessoCadastro();
                         } else {
                             try {
@@ -227,32 +230,13 @@ public class CadastroActivity extends ComponentActivity {
             });
 
         } catch (JSONException e) {
-            Log.e("CADASTRO_API", "Erro ao criar JSON: " + e.getMessage());
             runOnUiThread(() -> {
                 btnCadastrar.setEnabled(true);
-                btnCadastrar.setText("CADASTRAR");
+                btnCadastrar.setText("Cadastrar");
                 mostrarErroCadastro();
             });
         }
     }
-    }
+}
 
-    private void mostrarSucessoCadastro() {
-        new AlertDialog.Builder(this)
-                .setTitle("Cadastro Realizado!")
-                .setMessage("Sua conta foi criada com sucesso. Faça login para continuar.")
-                .setPositiveButton("OK", (dialog, which) -> {
-                    startActivity(new Intent(this, Activity.class));
-                    finish();
-                })
-                .setCancelable(false)
-                .show();
-    }
 
-    private void mostrarErroCadastro() {
-        new AlertDialog.Builder(this)
-                .setTitle("Erro no Cadastro")
-                .setMessage("Não foi possível criar sua conta. Tente novamente.")
-                .setPositiveButton("OK", null)
-                .show();
-    }

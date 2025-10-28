@@ -86,34 +86,6 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
                 200,
                 "Ovos"
         ));
-        produtoManager.adicionarProduto(new Produto(
-                "Ovos Caipira Frescos",
-                "Ovos de galinhas criadas soltas com alimentação natural e sem hormônios",
-                18.00,
-                200,
-                "Ovos"
-        ));
-        produtoManager.adicionarProduto(new Produto(
-                "Ovos Caipira Frescos",
-                "Ovos de galinhas criadas soltas com alimentação natural e sem hormônios",
-                18.00,
-                200,
-                "Ovos"
-        ));
-        produtoManager.adicionarProduto(new Produto(
-                "Ovos Caipira Frescos",
-                "Ovos de galinhas criadas soltas com alimentação natural e sem hormônios",
-                18.00,
-                200,
-                "Ovos"
-        ));
-        produtoManager.adicionarProduto(new Produto(
-                "Ovos Caipira Frescos",
-                "Ovos de galinhas criadas soltas com alimentação natural e sem hormônios",
-                18.00,
-                200,
-                "Ovos"
-        ));
 
         Toast.makeText(this, "Produtos de exemplo carregados", Toast.LENGTH_SHORT).show();
     }

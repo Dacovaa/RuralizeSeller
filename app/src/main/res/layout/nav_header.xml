@@ -11,10 +11,10 @@
     <!-- Logo da Empresa -->
     <ImageView
         android:id="@+id/imgLogoEmpresa"
-        android:layout_width="140dp"
-        android:layout_height="80dp"
-        android:layout_marginBottom="12dp"
-        android:src="@drawable/ic_default_logo2"
+        android:layout_width="match_parent"
+        android:layout_height="100dp"
+        android:layout_marginTop="33dp"
+        android:src="@drawable/ic_default_logo3"
         android:contentDescription="Logo da empresa"
         android:scaleType="centerCrop" />
 

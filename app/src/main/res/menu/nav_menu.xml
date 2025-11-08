@@ -1,0 +1,45 @@
+<?xml version="1.0" encoding="utf-8"?>
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+
+    <group android:checkableBehavior="single">
+        <item
+            android:id="@+id/nav_produtos"
+            android:icon="@drawable/ic_produtos"
+            android:title="Produtos" />
+
+        <item
+            android:id="@+id/nav_vendas"
+            android:icon="@drawable/ic_vendas"
+            android:title="Vendas" />
+
+        <item
+            android:id="@+id/nav_catalogo"
+            android:icon="@drawable/ic_catalogo"
+            android:title="Catálogo" />
+
+        <item
+            android:id="@+id/nav_estoque"
+            android:icon="@drawable/ic_estoque"
+            android:title="Estoque" />
+
+        <item
+            android:id="@+id/nav_entregas"
+            android:icon="@drawable/ic_entregas"
+            android:title="Entregas" />
+    </group>
+
+    <item android:title="Conta">
+        <menu>
+            <item
+                android:id="@+id/nav_minha_conta"
+                android:icon="@drawable/ic_conta"
+                android:title="Minha Conta" />
+
+            <item
+                android:id="@+id/nav_sair"
+                android:icon="@drawable/ic_sair"
+                android:title="Sair" />
+        </menu>
+    </item>
+
+</menu>

@@ -157,7 +157,7 @@ public class CadastroActivity extends ComponentActivity {
         mAuth.createUserWithEmailAndPassword(email, senha)
                 .addOnCompleteListener(task -> {
                     if (task.isSuccessful()) {
-                        saveExtraUserData(cnpj, empresa, email,senha);
+                        saveExtraUserData(cnpj, empresa, email, senha);
                     } else {
                         Toast.makeText(this, "Erro: " + task.getException().getMessage(), Toast.LENGTH_LONG).show();
                     }

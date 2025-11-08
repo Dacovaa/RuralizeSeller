@@ -28,10 +28,11 @@
                 android:background="@drawable/bg_button_primary"/>
 
             <TextView
+                android:id="@+id/produtoTitulo"
                 android:layout_width="0dp"
                 android:layout_height="wrap_content"
                 android:layout_weight="1"
-                android:text="Novo Produto"
+                android:text="Insira os dados do produto"
                 android:textSize="20sp"
                 android:textColor="#2D4A33"
                 android:textStyle="bold"

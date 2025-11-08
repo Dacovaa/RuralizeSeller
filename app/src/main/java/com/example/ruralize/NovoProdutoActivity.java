@@ -19,6 +19,12 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.google.firebase.FirebaseApp;
+import com.google.firebase.auth.FirebaseAuth;
+import com.google.firebase.auth.FirebaseUser;
+
+import java.io.IOException;
+
 public class NovoProdutoActivity extends ComponentActivity {
 
     private int contadorFotos = 0;
@@ -26,6 +32,18 @@ public class NovoProdutoActivity extends ComponentActivity {
     private LinearLayout containerFotos;
     private Spinner spinnerCategoria;
     private EditText edtPreco, edtEstoque;
+    private boolean modoEdicao = false;
+    private String produtoId = null;
+    private TextView produtoTitulo;
+    private FirebaseAuth mAuth;
+    private final java.util.List<Uri> fotosSelecionadas = new java.util.ArrayList<>();
+    private final java.util.List<String> fotosUrls = new java.util.ArrayList<>();
+
+    private interface UploadCallback {
+        void onUploadComplete(java.util.List<String> urls);
+        void onUploadError(Exception e);
+    }
+
 
     private final ActivityResultLauncher<Intent> galeriaLauncher =
             registerForActivityResult(
@@ -40,6 +58,7 @@ public class NovoProdutoActivity extends ComponentActivity {
                                     if (imagemSelecionada != null && contadorFotos < MAX_FOTOS) {
                                         contadorFotos++;
                                         adicionarThumbnail(imagemSelecionada);
+                                        fotosSelecionadas.add(imagemSelecionada);
                                         atualizarInterface();
                                         Toast.makeText(NovoProdutoActivity.this, "Foto " + contadorFotos + " adicionada!", Toast.LENGTH_SHORT).show();
                                     }
@@ -53,7 +72,49 @@ public class NovoProdutoActivity extends ComponentActivity {
         super.onCreate(savedInstanceState);
         setContentView(R.layout.activity_novo_produto);
 
+        FirebaseApp.initializeApp(this);
+        mAuth = FirebaseAuth.getInstance();
+
+        modoEdicao = getIntent().getBooleanExtra("MODO_EDICAO", false);
+        produtoId = getIntent().getStringExtra("ID");
+
         setupFunctionality();
+        preencherCamposSeModoEdicao();
+    }
+
+    private void preencherCamposSeModoEdicao() {
+        Intent intent = getIntent();
+        boolean modoEdicao = intent.getBooleanExtra("MODO_EDICAO", false);
+
+        if (modoEdicao) {
+            String titulo = intent.getStringExtra("TITULO");
+            String descricao = intent.getStringExtra("DESCRICAO");
+            double preco = intent.getDoubleExtra("PRECO", 0.0);
+            int estoque = intent.getIntExtra("ESTOQUE", 0);
+            String categoria = intent.getStringExtra("CATEGORIA");
+
+            EditText edtTitulo = findViewById(R.id.edtTitulo);
+            EditText edtDescricao = findViewById(R.id.edtDescricao);
+            edtPreco = findViewById(R.id.edtPreco);
+            edtEstoque = findViewById(R.id.edtEstoque);
+            spinnerCategoria = findViewById(R.id.spinnerCategoria);
+
+            edtTitulo.setText(titulo);
+            edtDescricao.setText(descricao);
+            edtPreco.setText(String.valueOf(preco));
+            edtEstoque.setText(String.valueOf(estoque));
+
+            if (categoria != null) {
+                ArrayAdapter adapter = (ArrayAdapter) spinnerCategoria.getAdapter();
+                int pos = adapter.getPosition(categoria);
+                if (pos >= 0) {
+                    spinnerCategoria.setSelection(pos);
+                }
+            }
+
+            Button btnEnviar = findViewById(R.id.btnEnviar);
+            btnEnviar.setText("Salvar Alterações");
+        }
     }
 
     private void setupFunctionality() {
@@ -106,13 +167,73 @@ public class NovoProdutoActivity extends ComponentActivity {
                 String estoque = edtEstoque.getText().toString().trim();
                 String categoria = spinnerCategoria.getSelectedItem().toString();
 
-                if (validarFormulario(titulo, descricao, preco, estoque, categoria)) {
+                if (modoEdicao && produtoId != null) {
+                    atualizarProduto(produtoId, titulo, descricao, preco, estoque, categoria);
+                } else {
                     enviarProduto(titulo, descricao, preco, estoque, categoria);
                 }
             }
         });
 
         atualizarInterface();
+    }
+
+    private void atualizarProduto(String id, String titulo, String descricao, String preco, String estoque, String categoria) {
+        Button btnEnviar = findViewById(R.id.btnEnviar);
+        btnEnviar.setEnabled(false);
+        btnEnviar.setText("Salvando...");
+
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+
+        org.json.JSONObject jsonBody = new org.json.JSONObject();
+        try {
+            jsonBody.put("titulo", titulo);
+            jsonBody.put("descricao", descricao);
+            jsonBody.put("fotos", new org.json.JSONArray());
+            jsonBody.put("preco", Double.parseDouble(preco));
+            jsonBody.put("estoque", Integer.parseInt(estoque));
+            jsonBody.put("categoria", categoria);
+        } catch (Exception e) {
+            e.printStackTrace();
+            Toast.makeText(this, "Erro ao montar JSON", Toast.LENGTH_SHORT).show();
+            return;
+        }
+
+        okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
+        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+        okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
+
+        okhttp3.Request request = new okhttp3.Request.Builder()
+                .url("https://ruralize-api.vercel.app/products/" + id)
+                .patch(body)
+                .build();
+
+        client.newCall(request).enqueue(new okhttp3.Callback() {
+            @Override
+            public void onFailure(okhttp3.Call call, IOException e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(NovoProdutoActivity.this, "Erro ao atualizar produto: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    btnEnviar.setEnabled(true);
+                    btnEnviar.setText("Salvar Alterações");
+                });
+            }
+
+            @Override
+            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                runOnUiThread(() -> {
+                    if (response.isSuccessful()) {
+                        Toast.makeText(NovoProdutoActivity.this, "✅ Produto atualizado com sucesso!", Toast.LENGTH_LONG).show();
+                        Intent intent = new Intent(NovoProdutoActivity.this, GerenciarProdutosActivity.class);
+                        startActivity(intent);
+                        finish();
+                    } else {
+                        Toast.makeText(NovoProdutoActivity.this, "❌ Erro: " + response.code(), Toast.LENGTH_LONG).show();
+                        btnEnviar.setEnabled(true);
+                        btnEnviar.setText("Salvar Alterações");
+                    }
+                });
+            }
+        });
     }
 
     private void configurarSpinnerCategorias() {
@@ -231,34 +352,120 @@ public class NovoProdutoActivity extends ComponentActivity {
             return false;
         }
 
-        if (contadorFotos == 0) {
-            Toast.makeText(this, "Adicione pelo menos uma foto", Toast.LENGTH_SHORT).show();
-            return false;
-        }
-
         return true;
     }
 
     private void enviarProduto(String titulo, String descricao, String preco, String estoque, String categoria) {
         Button btnEnviar = findViewById(R.id.btnEnviar);
-
         btnEnviar.setEnabled(false);
         btnEnviar.setText("Enviando...");
 
-        new android.os.Handler().postDelayed(new Runnable() {
-            @Override
-            public void run() {
-                Toast.makeText(NovoProdutoActivity.this,
-                        "✅ Produto '" + titulo + "' enviado!\n" +
-                                "Preço: R$ " + preco + "\n" +
-                                "Estoque: " + estoque + " unidades\n" +
-                                "Categoria: " + categoria + "\n" +
-                                "Fotos: " + contadorFotos, Toast.LENGTH_LONG).show();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        if (currentUser == null) {
+            Toast.makeText(this, "Usuário não autenticado", Toast.LENGTH_SHORT).show();
+            return;
+        }
 
-                Intent intent = new Intent(NovoProdutoActivity.this, GerenciarProdutosActivity.class);
-                startActivity(intent);
-                finish();
+        String uid = currentUser.getUid();
+
+        if (fotosSelecionadas.isEmpty()) {
+            Toast.makeText(this, "Adicione pelo menos uma foto!", Toast.LENGTH_SHORT).show();
+            btnEnviar.setEnabled(true);
+            btnEnviar.setText("Enviar Produto");
+            return;
+        }
+
+        uploadFotosParaStorage(uid, new UploadCallback() {
+            @Override
+            public void onUploadComplete(java.util.List<String> urls) {
+                org.json.JSONObject jsonBody = new org.json.JSONObject();
+                try {
+                    jsonBody.put("titulo", titulo);
+                    jsonBody.put("descricao", descricao);
+                    jsonBody.put("fotos", new org.json.JSONArray(urls));
+                    jsonBody.put("preco", Double.parseDouble(preco));
+                    jsonBody.put("estoque", Integer.parseInt(estoque));
+                    jsonBody.put("categoria", categoria);
+                } catch (Exception e) {
+                    e.printStackTrace();
+                    Toast.makeText(NovoProdutoActivity.this, "Erro ao montar JSON", Toast.LENGTH_SHORT).show();
+                    return;
+                }
+
+                okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
+                okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+                okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
+
+                okhttp3.Request request = new okhttp3.Request.Builder()
+                        .url("https://ruralize-api.vercel.app/products")
+                        .post(body)
+                        .build();
+
+                client.newCall(request).enqueue(new okhttp3.Callback() {
+                    @Override
+                    public void onFailure(okhttp3.Call call, IOException e) {
+                        runOnUiThread(() -> {
+                            Toast.makeText(NovoProdutoActivity.this, "Erro ao enviar produto: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                            btnEnviar.setEnabled(true);
+                            btnEnviar.setText("Enviar Produto");
+                        });
+                    }
+
+                    @Override
+                    public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
+                        runOnUiThread(() -> {
+                            if (response.isSuccessful()) {
+                                Toast.makeText(NovoProdutoActivity.this, "✅ Produto cadastrado com sucesso!", Toast.LENGTH_LONG).show();
+                                Intent intent = new Intent(NovoProdutoActivity.this, GerenciarProdutosActivity.class);
+                                startActivity(intent);
+                                finish();
+                            } else {
+                                Toast.makeText(NovoProdutoActivity.this, "❌ Erro: " + response.code(), Toast.LENGTH_LONG).show();
+                                btnEnviar.setEnabled(true);
+                                btnEnviar.setText("Enviar Produto");
+                            }
+                        });
+                    }
+                });
             }
-        }, 1500);
+
+            @Override
+            public void onUploadError(Exception e) {
+                runOnUiThread(() -> {
+                    Toast.makeText(NovoProdutoActivity.this, "Erro ao enviar fotos: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    btnEnviar.setEnabled(true);
+                    btnEnviar.setText("Enviar Produto");
+                });
+            }
+        });
     }
+
+    private void uploadFotosParaStorage(String userId, UploadCallback callback) {
+        com.google.firebase.storage.FirebaseStorage storage = com.google.firebase.storage.FirebaseStorage.getInstance();
+        com.google.firebase.storage.StorageReference storageRef = storage.getReference();
+
+        fotosUrls.clear();
+
+        new Thread(() -> {
+            try {
+                for (Uri fotoUri : fotosSelecionadas) {
+                    String nomeArquivo = "produtos/" + userId + "/" + System.currentTimeMillis() + ".jpg";
+                    com.google.firebase.storage.StorageReference fotoRef = storageRef.child(nomeArquivo);
+
+                    java.io.InputStream stream = getContentResolver().openInputStream(fotoUri);
+                    fotoRef.putStream(stream).addOnSuccessListener(taskSnapshot ->
+                            fotoRef.getDownloadUrl().addOnSuccessListener(uri -> {
+                                fotosUrls.add(uri.toString());
+                                if (fotosUrls.size() == fotosSelecionadas.size()) {
+                                    callback.onUploadComplete(fotosUrls);
+                                }
+                            }).addOnFailureListener(callback::onUploadError)
+                    ).addOnFailureListener(callback::onUploadError);
+                }
+            } catch (Exception e) {
+                callback.onUploadError(e);
+            }
+        }).start();
+    }
+
 }

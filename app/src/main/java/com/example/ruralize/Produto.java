@@ -11,17 +11,15 @@ public class Produto {
     private int estoque;
     private String categoria;
     private List<String> fotosUrls;
-    private String empresaId;
 
     // Construtor vazio necessário
     public Produto() {
         this.fotosUrls = new ArrayList<>();
-        // Gerar um ID automático se não for fornecido
-        this.id = String.valueOf(System.currentTimeMillis());
     }
 
-    public Produto(String titulo, String descricao, double preco, int estoque, String categoria) {
+    public Produto(String id, String titulo, String descricao, double preco, int estoque, String categoria) {
         this();
+        this.id = id;
         this.titulo = titulo;
         this.descricao = descricao;
         this.preco = preco;
@@ -31,9 +29,6 @@ public class Produto {
 
     // Getters e Setters
     public String getId() {
-        if (id == null) {
-            id = String.valueOf(System.currentTimeMillis());
-        }
         return id;
     }
 
@@ -56,7 +51,4 @@ public class Produto {
 
     public List<String> getFotosUrls() { return fotosUrls; }
     public void setFotosUrls(List<String> fotosUrls) { this.fotosUrls = fotosUrls; }
-
-    public String getEmpresaId() { return empresaId; }
-    public void setEmpresaId(String empresaId) { this.empresaId = empresaId; }
 }

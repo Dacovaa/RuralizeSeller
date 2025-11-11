@@ -10,6 +10,7 @@ import androidx.activity.ComponentActivity;
 import androidx.recyclerview.widget.LinearLayoutManager;
 import androidx.recyclerview.widget.RecyclerView;
 
+import com.example.ruralize.network.ApiConfig;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,8 +37,6 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
     private FirebaseAuth mAuth;
 
     private final OkHttpClient client = new OkHttpClient();
-    private static final String BASE_URL = "https://ruralize-api.vercel.app";
-
     @Override
     protected void onCreate(Bundle savedInstanceState) {
         super.onCreate(savedInstanceState);
@@ -81,10 +80,11 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
         }
 
         String uid = currentUser.getUid();
-        String url = BASE_URL + "/products/" + uid;
+        String url = ApiConfig.productsByUser(uid); // TODO: ajuste este caminho conforme a nova API
 
         Request request = new Request.Builder()
                 .url(url)
+                // TODO: adicionar cabeçalhos (ex.: Authorization) se o novo backend exigir
                 .get()
                 .build();
 
@@ -176,10 +176,11 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
         }
 
         String uid = currentUser.getUid();
-        String url = BASE_URL + "/products/" + uid + "/" + produtoId;
+        String url = ApiConfig.productDelete(uid, produtoId); // TODO: ajuste se o delete usar outra rota
 
         Request request = new Request.Builder()
                 .url(url)
+                // TODO: adicionar cabeçalhos (ex.: Authorization) se necessários
                 .delete()
                 .build();
 

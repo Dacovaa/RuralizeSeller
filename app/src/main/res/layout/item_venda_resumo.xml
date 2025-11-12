@@ -1,0 +1,50 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_edittext_simple"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <TextView
+        android:id="@+id/txtTituloProdutoVenda"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Produto"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/txtQuantidadeVendida"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="0 un. vendidas"
+        android:textColor="@color/text_hint"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/txtReceitaGerada"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="R$ 0,00"
+        android:textColor="@color/green_mid"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginTop="4dp" />
+
+    <TextView
+        android:id="@+id/txtUltimaVenda"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Última venda em --"
+        android:textColor="@color/text_hint"
+        android:textSize="12sp"
+        android:layout_marginTop="6dp" />
+
+</LinearLayout>
+
+
+

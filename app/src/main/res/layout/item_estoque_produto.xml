@@ -1,0 +1,112 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_edittext_simple"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <TextView
+        android:id="@+id/txtTituloEstoque"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Produto"
+        android:textColor="@color/text_primary"
+        android:textStyle="bold"
+        android:textSize="16sp" />
+
+    <TextView
+        android:id="@+id/txtCategoriaEstoque"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Categoria"
+        android:textColor="@color/text_hint"
+        android:textSize="12sp"
+        android:layout_marginTop="2dp" />
+
+    <TextView
+        android:id="@+id/txtPrecoEstoque"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="R$ 0,00"
+        android:textColor="@color/green_mid"
+        android:textStyle="bold"
+        android:textSize="14sp"
+        android:layout_marginTop="6dp" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical"
+        android:layout_marginTop="12dp">
+
+        <Button
+            android:id="@+id/btnDiminuirEstoque"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="−"
+            android:textSize="18sp"
+            android:background="@drawable/bg_button_outline_simple"
+            android:textColor="@color/green_mid" />
+
+        <TextView
+            android:id="@+id/txtEstoqueAtual"
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:text="0"
+            android:textAlignment="center"
+            android:textColor="@color/text_primary"
+            android:textSize="22sp"
+            android:textStyle="bold" />
+
+        <Button
+            android:id="@+id/btnAumentarEstoque"
+            android:layout_width="48dp"
+            android:layout_height="48dp"
+            android:text="+"
+            android:textSize="18sp"
+            android:background="@drawable/bg_button_outline_simple"
+            android:textColor="@color/green_mid" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtAlteracaoEstoque"
+        android:layout_width="wrap_content"
+        android:layout_height="wrap_content"
+        android:text="Alteração: +0 un."
+        android:textColor="@color/text_hint"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp"
+        android:visibility="gone" />
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="end"
+        android:layout_marginTop="12dp">
+
+        <ProgressBar
+            android:id="@+id/progressSalvarEstoque"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            style="?android:attr/progressBarStyleSmall"
+            android:visibility="gone"
+            android:layout_marginEnd="12dp" />
+
+        <Button
+            android:id="@+id/btnSalvarEstoque"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Salvar"
+            android:textColor="@color/green_dark"
+            android:background="@drawable/bg_button_primary" />
+    </LinearLayout>
+
+</LinearLayout>
+
+
+

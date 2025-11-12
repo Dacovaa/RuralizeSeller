@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.example.ruralize.network.ApiConfig;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 
@@ -191,7 +192,8 @@ public class CadastroActivity extends ComponentActivity {
             );
 
             Request request = new Request.Builder()
-                    .url("https://ruralize-api.vercel.app/auth/signup")
+                    .url(ApiConfig.signUp()) // TODO: ajuste conforme a rota de cadastro do novo backend
+                    // TODO: incluir headers (ex.: Authorization/api-key) se necessário
                     .post(body)
                     .addHeader("Content-Type", "application/json")
                     .build();

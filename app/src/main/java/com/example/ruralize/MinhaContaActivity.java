@@ -13,6 +13,7 @@ import androidx.appcompat.app.AlertDialog;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
+import com.example.ruralize.network.ApiConfig;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
@@ -83,12 +84,13 @@ public class MinhaContaActivity extends ComponentActivity {
 
     private void buscarDadosUsuarioDaApi(String uid) {
 
-        String url = String.format("https://ruralize-api.vercel.app/auth/%s", uid);
+        String url = ApiConfig.profile(uid); // TODO: ajuste este método se a nova API utilizar outro caminho/parâmetros
 
         okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
 
         okhttp3.Request.Builder requestBuilder = new okhttp3.Request.Builder()
                 .url(url)
+                // TODO: adicionar headers (ex.: Authorization) aqui se a nova API exigir
                 .get();
 
         okhttp3.Request request = requestBuilder.build();
@@ -222,9 +224,10 @@ public class MinhaContaActivity extends ComponentActivity {
             );
 
             Request request = new Request.Builder()
-                    .url("https://ruralize-api.vercel.app/auth/update")
+                    .url(ApiConfig.updateProfile()) // TODO: ajustar rota/método conforme o novo backend
                     .patch(body)
                     .addHeader("Content-Type", "application/json")
+                    // TODO: adicionar cabeçalhos extras (ex.: Authorization) se a nova API exigir autenticação adicional
                     .build();
 
             client.newCall(request).enqueue(new Callback() {
@@ -368,9 +371,10 @@ public class MinhaContaActivity extends ComponentActivity {
             );
 
             Request request = new Request.Builder()
-                    .url("https://ruralize-api.vercel.app/auth/updatePassword")
+                    .url(ApiConfig.updatePassword()) // TODO: ajuste conforme a nova rota de atualização de senha
                     .patch(body)
                     .addHeader("Content-Type", "application/json")
+                    // TODO: adicionar cabeçalhos extras (ex.: Authorization) caso a API exija
                     .build();
 
             client.newCall(request).enqueue(new Callback() {

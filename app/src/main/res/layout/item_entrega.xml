@@ -1,0 +1,77 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical"
+    android:background="@drawable/bg_edittext_simple"
+    android:padding="16dp"
+    android:layout_marginBottom="12dp">
+
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="horizontal"
+        android:gravity="center_vertical">
+
+        <View
+            android:id="@+id/viewIndicadorStatus"
+            android:layout_width="8dp"
+            android:layout_height="48dp"
+            android:background="@color/green_light"
+            android:layout_marginEnd="12dp" />
+
+        <LinearLayout
+            android:layout_width="0dp"
+            android:layout_height="wrap_content"
+            android:layout_weight="1"
+            android:orientation="vertical">
+
+            <TextView
+                android:id="@+id/txtClienteEntrega"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Cliente"
+                android:textColor="@color/text_primary"
+                android:textSize="16sp"
+                android:textStyle="bold" />
+
+            <TextView
+                android:id="@+id/txtStatusEntrega"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:text="Status"
+                android:textColor="@color/text_hint"
+                android:textSize="12sp"
+                android:layout_marginTop="2dp" />
+        </LinearLayout>
+
+        <TextView
+            android:id="@+id/txtValorEntrega"
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="R$ 0,00"
+            android:textColor="@color/green_mid"
+            android:textStyle="bold"
+            android:textSize="14sp" />
+    </LinearLayout>
+
+    <TextView
+        android:id="@+id/txtEnderecoEntrega"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Endereço de entrega"
+        android:textColor="@color/text_hint"
+        android:textSize="12sp"
+        android:layout_marginTop="8dp" />
+
+    <TextView
+        android:id="@+id/txtDataEntrega"
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:text="Entrega prevista: 21/09"
+        android:textColor="@color/text_hint"
+        android:textSize="12sp"
+        android:layout_marginTop="4dp" />
+
+</LinearLayout>
+

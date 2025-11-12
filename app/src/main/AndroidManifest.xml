@@ -47,6 +47,12 @@
         <activity
             android:name=".MinhaContaActivity"
             android:exported="false" />
+        <activity
+            android:name=".EstoqueActivity"
+            android:exported="false" />
+        <activity
+            android:name=".VendasActivity"
+            android:exported="false" />
     </application>
 
 

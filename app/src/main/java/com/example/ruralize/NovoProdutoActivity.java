@@ -19,6 +19,7 @@ import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
 import androidx.activity.result.contract.ActivityResultContracts;
 
+import com.example.ruralize.network.ApiConfig;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -204,7 +205,8 @@ public class NovoProdutoActivity extends ComponentActivity {
         okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
 
         okhttp3.Request request = new okhttp3.Request.Builder()
-                .url("https://ruralize-api.vercel.app/products/" + id)
+                .url(ApiConfig.productUpdate(id)) // TODO: ajuste para o endpoint correspondente na nova API
+                // TODO: incluir headers (ex.: Authorization) se o novo backend exigir
                 .patch(body)
                 .build();
 
@@ -396,7 +398,8 @@ public class NovoProdutoActivity extends ComponentActivity {
                 okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
                 okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
                 okhttp3.Request request = new okhttp3.Request.Builder()
-                        .url("https://ruralize-api.vercel.app/products")
+                        .url(ApiConfig.productsCollection()) // TODO: ajuste se a rota de criação for diferente
+                        // TODO: incluir headers (ex.: Authorization) se necessário
                         .post(body)
                         .build();
 

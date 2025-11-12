@@ -395,7 +395,6 @@ public class NovoProdutoActivity extends ComponentActivity {
                 okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
                 okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
                 okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
-
                 okhttp3.Request request = new okhttp3.Request.Builder()
                         .url("https://ruralize-api.vercel.app/products")
                         .post(body)
@@ -451,8 +450,8 @@ public class NovoProdutoActivity extends ComponentActivity {
                 for (Uri fotoUri : fotosSelecionadas) {
                     String nomeArquivo = "produtos/" + userId + "/" + System.currentTimeMillis() + ".jpg";
                     com.google.firebase.storage.StorageReference fotoRef = storageRef.child(nomeArquivo);
-
                     java.io.InputStream stream = getContentResolver().openInputStream(fotoUri);
+                    assert stream != null;
                     fotoRef.putStream(stream).addOnSuccessListener(taskSnapshot ->
                             fotoRef.getDownloadUrl().addOnSuccessListener(uri -> {
                                 fotosUrls.add(uri.toString());

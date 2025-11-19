@@ -1,13 +1,21 @@
 package com.example.ruralize;
 
+import android.annotation.SuppressLint;
+import android.net.Uri;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.view.ViewGroup;
 import android.widget.Button;
+import android.widget.ImageView;
 import android.widget.TextView;
 
 import androidx.annotation.NonNull;
 import androidx.recyclerview.widget.RecyclerView;
+
+import com.bumptech.glide.Glide;
+
+import org.json.JSONArray;
+import org.json.JSONException;
 
 import java.text.NumberFormat;
 import java.util.List;
@@ -54,6 +62,7 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
 
     public class ProdutoViewHolder extends RecyclerView.ViewHolder {
         TextView txtTitulo, txtDescricao, txtPreco, txtEstoque, txtCategoria;
+        ImageView imgProduto;
         Button btnEditar, btnExcluir;
 
         public ProdutoViewHolder(@NonNull View itemView) {
@@ -65,6 +74,7 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
             txtPreco = itemView.findViewById(R.id.txtPreco);
             txtEstoque = itemView.findViewById(R.id.txtEstoque);
             txtCategoria = itemView.findViewById(R.id.txtCategoria);
+            imgProduto = itemView.findViewById(R.id.imgProduto);
             btnEditar = itemView.findViewById(R.id.btnEditar);
             btnExcluir = itemView.findViewById(R.id.btnExcluir);
         }
@@ -83,6 +93,20 @@ public class ProdutoAdapter extends RecyclerView.Adapter<ProdutoAdapter.ProdutoV
 
             txtEstoque.setText("Estoque: " + produto.getEstoque() + " unidades");
             txtCategoria.setText(produto.getCategoria() != null ? produto.getCategoria() : "");
+            List<String> fotosArray = produto.getFotosUrls();
+            String primeiraFoto = fotosArray.get(0);
+
+            if (primeiraFoto != null) {
+                if (!primeiraFoto.isEmpty()) {
+                    Glide.with(itemView.getContext())
+                            .load(primeiraFoto)
+                            .into(imgProduto);
+                } else {
+                    imgProduto.setImageDrawable(null);
+                }
+            } else {
+                imgProduto.setImageDrawable(null);
+            }
 
             // Configurar cliques dos botões
             btnEditar.setOnClickListener(v -> {

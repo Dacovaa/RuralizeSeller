@@ -135,7 +135,8 @@ public class EstoqueActivity extends BaseDrawerActivity implements EstoqueAdapte
                                 jsonProduto.optString("descricao"),
                                 jsonProduto.optDouble("preco"),
                                 jsonProduto.optInt("estoque"),
-                                jsonProduto.optString("categoria")
+                                jsonProduto.optString("categoria"),
+                                (List<String>) jsonProduto.getJSONArray("fotos")
                         );
                         produtos.add(produto);
                     }
@@ -215,6 +216,9 @@ public class EstoqueActivity extends BaseDrawerActivity implements EstoqueAdapte
 
     private void executarAtualizacaoEstoque(Produto produto, int novoEstoque) {
         JSONObject jsonBody = new JSONObject();
+        FirebaseUser currentUser = mAuth.getCurrentUser();
+        assert currentUser != null;
+        String uid = currentUser.getUid();
         try {
             jsonBody.put("estoque", novoEstoque);
         } catch (JSONException e) {
@@ -228,8 +232,7 @@ public class EstoqueActivity extends BaseDrawerActivity implements EstoqueAdapte
         RequestBody body = RequestBody.create(jsonBody.toString(), JSON);
 
         Request request = new Request.Builder()
-                .url(ApiConfig.productUpdate(produto.getId())) // TODO: ajustar rota de atualização quando necessário
-                // TODO: incluir cabeçalhos adicionais (ex.: Authorization) se a nova API exigir
+                .url(ApiConfig.productUpdate(uid, produto.getId()))
                 .patch(body)
                 .build();
 

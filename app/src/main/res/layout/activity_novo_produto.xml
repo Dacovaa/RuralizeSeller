@@ -197,7 +197,7 @@
             android:id="@+id/btnEnviar"
             android:layout_width="match_parent"
             android:layout_height="54dp"
-            android:text="Enviar"
+            android:text="Enviar produto"
             android:textSize="16sp"
             android:textColor="#2D4A33"
             android:background="@drawable/bg_button_primary" />

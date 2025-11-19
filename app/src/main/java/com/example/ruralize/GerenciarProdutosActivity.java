@@ -20,6 +20,7 @@ import org.json.JSONObject;
 
 import java.io.IOException;
 import java.util.ArrayList;
+import java.util.Collections;
 import java.util.List;
 
 import okhttp3.Call;
@@ -80,11 +81,10 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
         }
 
         String uid = currentUser.getUid();
-        String url = ApiConfig.productsByUser(uid); // TODO: ajuste este caminho conforme a nova API
+        String url = ApiConfig.productsByUser(uid);
 
         Request request = new Request.Builder()
                 .url(url)
-                // TODO: adicionar cabeçalhos (ex.: Authorization) se o novo backend exigir
                 .get()
                 .build();
 
@@ -92,7 +92,7 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
             @Override
             public void onFailure(Call call, IOException e) {
                 runOnUiThread(() -> {
-                    Toast.makeText(GerenciarProdutosActivity.this, "Erro ao carregar produtos: " + e.getMessage(), Toast.LENGTH_LONG).show();
+                    Toast.makeText(GerenciarProdutosActivity.this, e.getMessage(), Toast.LENGTH_LONG).show();
                 });
             }
 
@@ -106,13 +106,22 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
                         JSONArray jsonArray = new JSONArray(responseBody);
                         for (int i = 0; i < jsonArray.length(); i++) {
                             JSONObject jsonProduto = jsonArray.getJSONObject(i);
+                            JSONArray fotosJson = jsonProduto.optJSONArray("fotos");
+                            List<String> fotosList = new ArrayList<>();
+
+                            if (fotosJson != null) {
+                                for (int j = 0; j < fotosJson.length(); j++) {
+                                    fotosList.add(fotosJson.getString(j));
+                                }
+                            }
                             Produto p = new Produto(
                                     jsonProduto.getString("id"),
                                     jsonProduto.getString("titulo"),
                                     jsonProduto.getString("descricao"),
                                     jsonProduto.getDouble("preco"),
                                     jsonProduto.getInt("estoque"),
-                                    jsonProduto.getString("categoria")
+                                    jsonProduto.getString("categoria"),
+                                    fotosList
                             );
                             produtos.add(p);
                         }
@@ -146,7 +155,6 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
     @Override
     public void onEditarClick(Produto produto) {
         Toast.makeText(this, "Editando: " + produto.getTitulo(), Toast.LENGTH_SHORT).show();
-
         Intent intent = new Intent(this, NovoProdutoActivity.class);
         intent.putExtra("MODO_EDICAO", true);
         intent.putExtra("ID", produto.getId());
@@ -155,6 +163,7 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
         intent.putExtra("PRECO", produto.getPreco());
         intent.putExtra("ESTOQUE", produto.getEstoque());
         intent.putExtra("CATEGORIA", produto.getCategoria());
+        intent.putStringArrayListExtra("FOTOSURL", (ArrayList<String>) produto.getFotosUrls());
         startActivity(intent);
     }
 
@@ -176,11 +185,10 @@ public class GerenciarProdutosActivity extends ComponentActivity implements Prod
         }
 
         String uid = currentUser.getUid();
-        String url = ApiConfig.productDelete(uid, produtoId); // TODO: ajuste se o delete usar outra rota
+        String url = ApiConfig.productDelete(uid, produtoId);
 
         Request request = new Request.Builder()
                 .url(url)
-                // TODO: adicionar cabeçalhos (ex.: Authorization) se necessários
                 .delete()
                 .build();
 

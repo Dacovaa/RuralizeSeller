@@ -9,13 +9,14 @@ package com.example.ruralize.network;
 public final class ApiConfig {
 
     private ApiConfig() {
-        // Classe utilitária; não deve ser instanciada.
     }
 
     /**
      * Host base da API. Ao mover para a API própria, altere esta constante.
      */
-    public static final String BASE_URL = "https://ruralize-api.vercel.app"; // TODO: atualizar para o domínio da nova API
+    public static final String BASE_URL = "https://ruralize-api.vercel.app";
+
+    //public static final String BASE_URL = "http://localhost:3000";
 
     /**
      * Caminhos principais utilizados atualmente. Ajuste conforme a estrutura de rotas do novo backend.
@@ -46,19 +47,23 @@ public final class ApiConfig {
     // ---------- PRODUCTS ----------
 
     public static String productsByUser(String uid) {
-        return BASE_URL + PRODUCTS_PATH + "/" + uid;
+        return BASE_URL + PRODUCTS_PATH + "/empresa" + "/" + uid;
     }
 
     public static String productsCollection() {
         return BASE_URL + PRODUCTS_PATH;
     }
 
-    public static String productUpdate(String productId) {
-        return BASE_URL + PRODUCTS_PATH + "/" + productId;
+    public static String productUpdate(String empresaId, String productId) {
+        return BASE_URL + PRODUCTS_PATH + "/" + empresaId + "/" + productId;
     }
 
     public static String productDelete(String uid, String productId) {
         return BASE_URL + PRODUCTS_PATH + "/" + uid + "/" + productId;
+    }
+
+    public static String uploadProductImage(String uid, String productId) {
+        return BASE_URL + PRODUCTS_PATH + "/" + uid + "/" + productId + "/upload";
     }
 
     // ---------- SALES ----------

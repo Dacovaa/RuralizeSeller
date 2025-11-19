@@ -1,5 +1,7 @@
 package com.example.ruralize;
 
+import org.json.JSONArray;
+
 import java.util.ArrayList;
 import java.util.List;
 
@@ -12,19 +14,14 @@ public class Produto {
     private String categoria;
     private List<String> fotosUrls;
 
-    // Construtor vazio necessário
-    public Produto() {
-        this.fotosUrls = new ArrayList<>();
-    }
-
-    public Produto(String id, String titulo, String descricao, double preco, int estoque, String categoria) {
-        this();
+    public Produto(String id, String titulo, String descricao, double preco, int estoque, String categoria, List<String> fotosUrls) {
         this.id = id;
         this.titulo = titulo;
         this.descricao = descricao;
         this.preco = preco;
         this.estoque = estoque;
         this.categoria = categoria;
+        this.fotosUrls = fotosUrls;
     }
 
     // Getters e Setters

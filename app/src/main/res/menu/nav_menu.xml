@@ -20,17 +20,20 @@
         <item
             android:id="@+id/nav_catalogo"
             android:icon="@drawable/ic_catalogo"
-            android:title="Catálogo" />
+            android:title="Catálogo"
+            android:visible="false" />
 
         <item
             android:id="@+id/nav_estoque"
             android:icon="@drawable/ic_estoque"
-            android:title="Estoque" />
+            android:title="Estoque"
+            android:visible="false" />
 
         <item
             android:id="@+id/nav_entregas"
             android:icon="@drawable/ic_entregas"
-            android:title="Entregas" />
+            android:title="Entregas"
+            android:visible="false" />
     </group>
 
     <item android:title="Conta">

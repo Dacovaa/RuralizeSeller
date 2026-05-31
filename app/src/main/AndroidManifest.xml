@@ -45,20 +45,11 @@
             android:exported="false" />
 
         <activity
-            android:name=".GerenciarProdutosActivity"
-            android:exported="false" />
-        <activity
             android:name=".NovoProdutoActivity"
             android:exported="false"
             android:theme="@style/Theme.MaterialComponents.Light.DarkActionBar" />
         <activity
-            android:name=".MinhaContaActivity"
-            android:exported="false" />
-        <activity
             android:name=".EstoqueActivity"
-            android:exported="false" />
-        <activity
-            android:name=".VendasActivity"
             android:exported="false" />
         <activity
             android:name=".EntregasActivity"

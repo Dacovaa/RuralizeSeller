@@ -262,11 +262,6 @@ public class EstoqueActivity extends BaseDrawerActivity implements EstoqueAdapte
             }
         });
     }
-
-    @Override
-    protected int getCurrentMenuItemId() {
-        return R.id.nav_estoque;
-    }
 }
 
 

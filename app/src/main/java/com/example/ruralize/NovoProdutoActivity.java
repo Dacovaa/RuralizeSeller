@@ -2,8 +2,11 @@ package com.example.ruralize;
 
 import android.app.AlertDialog;
 import android.content.Intent;
+import android.graphics.Bitmap;
+import android.graphics.BitmapFactory;
 import android.net.Uri;
 import android.os.Bundle;
+import android.util.Log;
 import android.view.View;
 import android.widget.ArrayAdapter;
 import android.widget.Button;
@@ -27,10 +30,12 @@ import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
+import java.io.ByteArrayOutputStream;
 import java.io.IOException;
 import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Objects;
+import java.util.function.Consumer;
 
 public class NovoProdutoActivity extends ComponentActivity {
 
@@ -44,6 +49,7 @@ public class NovoProdutoActivity extends ComponentActivity {
     private String produtoId = null;
     private TextView txtContador;
     private FirebaseAuth mAuth;
+    private Uri cameraImageUri;
     private final java.util.List<Uri> fotosSelecionadas = new java.util.ArrayList<>();
     private final java.util.List<String> fotosUrls = new java.util.ArrayList<>();
 
@@ -74,6 +80,22 @@ public class NovoProdutoActivity extends ComponentActivity {
                             }
                         }
                     });
+
+    private final ActivityResultLauncher<Intent> cameraLauncher =
+            registerForActivityResult(
+                    new ActivityResultContracts.StartActivityForResult(),
+                    result -> {
+                        if (result.getResultCode() == RESULT_OK) {
+                            if (cameraImageUri != null && contadorFotos < MAX_FOTOS) {
+                                contadorFotos++;
+                                adicionarThumbnail(cameraImageUri);
+                                fotosSelecionadas.add(cameraImageUri);
+                                atualizarInterface();
+                                Toast.makeText(NovoProdutoActivity.this, "Foto tirada adicionada!", Toast.LENGTH_SHORT).show();
+                            }
+                        }
+                    }
+            );
 
     @Override
     protected void onCreate(Bundle savedInstanceState) {
@@ -178,6 +200,44 @@ public class NovoProdutoActivity extends ComponentActivity {
         return imageView;
     }
 
+    private void mostrarOpcaoDeImagem() {
+        String[] opcoes = {"Tirar foto", "Escolher da galeria"};
+
+        AlertDialog.Builder builder = new AlertDialog.Builder(this)
+                .setTitle("Adicionar imagem")
+                .setItems(opcoes, (dialog, which) -> {
+                    if (which == 0) {
+                        abrirCamera();
+                    } else {
+                        abrirGaleria();
+                    }
+                });
+
+        builder.show();
+    }
+
+    private void abrirCamera() {
+        try {
+            Intent intent = new Intent(android.provider.MediaStore.ACTION_IMAGE_CAPTURE);
+
+            String nomeArquivo = "foto_" + System.currentTimeMillis() + ".jpg";
+            java.io.File arquivo = new java.io.File(getExternalFilesDir(null), nomeArquivo);
+
+            cameraImageUri = androidx.core.content.FileProvider.getUriForFile(
+                    this,
+                    getPackageName() + ".provider",
+                    arquivo
+            );
+
+            intent.putExtra(android.provider.MediaStore.EXTRA_OUTPUT, cameraImageUri);
+
+            cameraLauncher.launch(intent);
+
+        } catch (Exception e) {
+            Toast.makeText(this, "Erro ao abrir câmera: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+        }
+    }
+
     private void setupFunctionality() {
         btnVoltar = findViewById(R.id.btnVoltar);
         btnAdicionarFoto = findViewById(R.id.btnAdicionarFoto);
@@ -211,7 +271,7 @@ public class NovoProdutoActivity extends ComponentActivity {
             @Override
             public void onClick(View v) {
                 if (contadorFotos < MAX_FOTOS) {
-                    abrirGaleria();
+                    mostrarOpcaoDeImagem();
                 } else {
                     Toast.makeText(NovoProdutoActivity.this, "Máximo de " + MAX_FOTOS + " fotos atingido", Toast.LENGTH_SHORT).show();
                 }
@@ -425,15 +485,13 @@ public class NovoProdutoActivity extends ComponentActivity {
     private void configurarSpinnerCategorias() {
         String[] categorias = {
                 "Selecione uma categoria",
-                "Grãos e Cereais",
-                "Frutas",
-                "Verduras e Legumes",
-                "Laticínios",
-                "Carnes",
-                "Ovos",
-                "Mel e Derivados",
-                "Plantas e Mudas",
-                "Artesanato Rural",
+                "Rações e Concentrados",
+                "Suplementos e Vitaminas",
+                "Ferraduras e Ferramentas",
+                "Selaria e Equipamentos",
+                "Higiene e Cuidados",
+                "Medicamentos Veterinários",
+                "Acessórios para Estábulo",
                 "Outros"
         };
 
@@ -554,11 +612,65 @@ public class NovoProdutoActivity extends ComponentActivity {
         return false;
     }
 
-    private void uploadFotoParaAPI(String empresaId, String produtoId, Uri fotoUri, Runnable onComplete, Runnable onError) {
+    public byte[] getBytesFromInputStream(InputStream inputStream) throws IOException {
+        java.io.ByteArrayOutputStream byteBuffer = new java.io.ByteArrayOutputStream();
+        int bufferSize = 1024;
+        byte[] buffer = new byte[bufferSize];
+        int len;
+        while ((len = inputStream.read(buffer)) != -1) {
+            byteBuffer.write(buffer, 0, len);
+        }
+        return byteBuffer.toByteArray();
+    }
+
+    private void uploadFotoParaAPI(String empresaId, String produtoId, Uri fotoUri, Runnable onComplete, Consumer<String> onError) {
         try {
+            Log.d("RURALIZE_DEBUG", "Iniciando processamento da imagem: " + fotoUri.toString());
+
             InputStream inputStream = getContentResolver().openInputStream(fotoUri);
-            byte[] bytes = new byte[inputStream.available()];
-            inputStream.read(bytes);
+            if (inputStream == null) {
+                runOnUiThread(() -> onError.accept("Não foi possível abrir a foto."));
+                return;
+            }
+
+            Bitmap originalBitmap = BitmapFactory.decodeStream(inputStream);
+            inputStream.close();
+
+            if (originalBitmap == null) {
+                runOnUiThread(() -> onError.accept("Erro ao decodificar a imagem."));
+                return;
+            }
+
+            // --- REDIMENSIONAMENTO ---
+            int maxWidth = 1200;
+            Bitmap resizedBitmap;
+
+            if (originalBitmap.getWidth() > maxWidth) {
+                float ratio = (float) originalBitmap.getWidth() / (float) originalBitmap.getHeight();
+                int newHeight = (int) (maxWidth / ratio);
+                resizedBitmap = Bitmap.createScaledBitmap(originalBitmap, maxWidth, newHeight, true);
+                originalBitmap.recycle();
+            } else {
+                resizedBitmap = originalBitmap;
+            }
+
+            // --- COMPRESSÃO ---
+            ByteArrayOutputStream baos = new ByteArrayOutputStream();
+            resizedBitmap.compress(Bitmap.CompressFormat.JPEG, 75, baos);
+            byte[] bytes = baos.toByteArray();
+
+            resizedBitmap.recycle();
+            baos.close();
+
+            Log.d("RURALIZE_DEBUG", "Tamanho final comprimido: " + (bytes.length / 1024) + " KB");
+
+            // --- VERIFICAÇÃO DE SEGURANÇA ---
+            if (bytes.length > 4 * 1024 * 1024) {
+                runOnUiThread(() -> onError.accept("A imagem ainda está muito grande para o servidor."));
+                return;
+            }
+
+            // --- PREPARAÇÃO DO REQUEST ---
             String uniqueName = "foto_" + java.util.UUID.randomUUID() + ".jpg";
 
             okhttp3.RequestBody fileBody = okhttp3.RequestBody.create(
@@ -571,31 +683,45 @@ public class NovoProdutoActivity extends ComponentActivity {
                     .addFormDataPart("file", uniqueName, fileBody)
                     .build();
 
-            okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
+            okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
+                    .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                    .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
+                    .build();
+
+            String url = ApiConfig.uploadProductImage(empresaId, produtoId);
 
             okhttp3.Request request = new okhttp3.Request.Builder()
-                    .url(ApiConfig.uploadProductImage(empresaId, produtoId))
+                    .url(url)
                     .post(requestBody)
                     .build();
 
             client.newCall(request).enqueue(new okhttp3.Callback() {
                 @Override
                 public void onFailure(okhttp3.Call call, IOException e) {
-                    runOnUiThread(onError);
+                    Log.e("RURALIZE_ERRO", "Falha de rede: " + e.getMessage());
+                    runOnUiThread(() -> onError.accept("Erro de conexão: " + e.getMessage()));
                 }
 
                 @Override
                 public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
-                    if (!response.isSuccessful()) {
-                        runOnUiThread(onError);
-                        return;
+                    try (okhttp3.ResponseBody responseBody = response.body()) {
+                        String bodyString = responseBody != null ? responseBody.string() : "";
+
+                        if (!response.isSuccessful()) {
+                            Log.e("RURALIZE_ERRO", "Status " + response.code() + ": " + bodyString);
+                            runOnUiThread(() -> onError.accept("Servidor erro " + response.code()));
+                            return;
+                        }
+
+                        Log.d("RURALIZE_DEBUG", "Upload ok!");
+                        runOnUiThread(onComplete);
                     }
-                    runOnUiThread(onComplete);
                 }
             });
 
         } catch (Exception e) {
-            runOnUiThread(onError);
+            Log.e("RURALIZE_ERRO", "Erro crítico: " + e.getMessage());
+            runOnUiThread(() -> onError.accept("Erro interno: " + e.getMessage()));
         }
     }
 
@@ -616,8 +742,8 @@ public class NovoProdutoActivity extends ComponentActivity {
 
         uploadFotoParaAPI(empresaId, produtoId, foto,
                 () -> enviarFotosSequentialmente(empresaId, produtoId, btnEnviar, type),
-                () -> {
-                    Toast.makeText(this, "Erro ao fazer upload da foto!", Toast.LENGTH_SHORT).show();
+                (mensagemErro) -> { // Agora recebemos o erro real aqui
+                    Toast.makeText(this, mensagemErro, Toast.LENGTH_LONG).show();
                     btnEnviar.setEnabled(true);
                     btnEnviar.setText("Enviar Produto");
                 }

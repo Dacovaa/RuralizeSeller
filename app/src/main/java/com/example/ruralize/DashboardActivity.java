@@ -76,9 +76,6 @@ public class DashboardActivity extends BaseDrawerActivity {
         CardView cardVendas = findViewById(R.id.cardVendas);
         cardVendas.setOnClickListener(v -> startActivity(new Intent(this, VendasActivity.class)));
 
-        CardView cardEntregas = findViewById(R.id.cardEntregas);
-        cardEntregas.setOnClickListener(v -> startActivity(new Intent(this, EntregasActivity.class)));
-
         CardView cardConta = findViewById(R.id.cardConta);
         cardConta.setOnClickListener(v -> startActivity(new Intent(this, MinhaContaActivity.class)));
     }
@@ -91,11 +88,10 @@ public class DashboardActivity extends BaseDrawerActivity {
         }
 
         String uid = currentUser.getUid();
-        String url = ApiConfig.salesByUser(uid); // TODO: ajuste este método se o novo backend usar outro caminho/parametrização
+        String url = ApiConfig.salesByUser(uid);
 
         Request request = new Request.Builder()
                 .url(url)
-                // TODO: se a nova API exigir cabeçalhos extras (ex.: Authorization), inclua-os aqui com .addHeader("Authorization", "Bearer ...")
                 .get()
                 .build();
 
@@ -113,69 +109,45 @@ public class DashboardActivity extends BaseDrawerActivity {
                 }
 
                 String responseBody = response.body().string();
-                List<Venda> vendas = interpretarVendas(responseBody);
-                runOnUiThread(() -> atualizarResumo(vendas));
+                ResumoVendas resumo = interpretarVendas(responseBody);
+                runOnUiThread(() -> atualizarResumo(resumo));
             }
         });
     }
 
-    private List<Venda> interpretarVendas(String responseBody) {
-        List<Venda> vendas = new ArrayList<>();
+    private ResumoVendas interpretarVendas(String responseBody) {
         if (responseBody == null || responseBody.isEmpty()) {
-            return vendas;
+            return new ResumoVendas(0, 0);
         }
 
         try {
-            JSONArray jsonArray = new JSONArray(responseBody);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject jsonVenda = jsonArray.getJSONObject(i);
-                Venda venda = new Venda(
-                        jsonVenda.optString("id"),
-                        jsonVenda.optString("produtoId"),
-                        jsonVenda.optString("produtoTitulo", jsonVenda.optString("produtoNome")),
-                        jsonVenda.optInt("quantidade"),
-                        jsonVenda.optDouble("valorTotal"),
-                        jsonVenda.optDouble("precoUnitario"),
-                        jsonVenda.optString("data")
-                );
-                vendas.add(venda);
-            }
-        } catch (JSONException e) {
-            runOnUiThread(() -> Toast.makeText(DashboardActivity.this, "Erro ao interpretar vendas", Toast.LENGTH_SHORT).show());
-        }
+            JSONObject json = new JSONObject(responseBody);
 
-        return vendas;
+            double total = json.optDouble("total", 0);
+            int totalOrders = json.optInt("totalOrders", 0);
+
+            return new ResumoVendas(total, totalOrders);
+
+        } catch (JSONException e) {
+            runOnUiThread(() ->
+                    Toast.makeText(DashboardActivity.this, "Nenhuma Venda Efetuada", Toast.LENGTH_SHORT).show()
+            );
+            return new ResumoVendas(0, 0);
+        }
     }
 
-    private void atualizarResumo(List<Venda> vendas) {
-        if (vendas == null) {
-            vendas = Collections.emptyList();
-        }
+    private void atualizarResumo(ResumoVendas resumo) {
 
-        double totalReceita = 0;
-        int totalPedidos = vendas.size();
-
-        Map<String, Float> receitaPorDia = new TreeMap<>();
-        Map<String, Float> pedidosPorDia = new TreeMap<>();
-
-        for (Venda venda : vendas) {
-            if (venda == null) continue;
-            totalReceita += venda.getValorTotal();
-
-            String dataChave = extrairDataSimples(venda.getData());
-            if (dataChave == null) {
-                dataChave = "Indefinido";
-            }
-
-            receitaPorDia.put(dataChave, receitaPorDia.getOrDefault(dataChave, 0f) + (float) venda.getValorTotal());
-            pedidosPorDia.put(dataChave, pedidosPorDia.getOrDefault(dataChave, 0f) + venda.getQuantidade());
-        }
+        double totalReceita = resumo.getTotal();
+        int totalPedidos = resumo.getTotalOrders();
 
         txtTotalVendas.setText(currencyFormat.format(totalReceita));
-        txtTotalPedidos.setText(totalPedidos + (totalPedidos == 1 ? " pedido" : " pedidos"));
+        txtTotalPedidos.setText(
+                totalPedidos + (totalPedidos == 1 ? " pedido" : " pedidos")
+        );
 
-        chartVendas.setData(extrairUltimosValores(receitaPorDia, 7));
-        chartPedidos.setData(extrairUltimosValores(pedidosPorDia, 7));
+        chartVendas.setData(criarPlaceholderValores(7));
+        chartPedidos.setData(criarPlaceholderValores(7));
     }
 
     private String extrairDataSimples(String dataIso) {

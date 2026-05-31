@@ -62,10 +62,7 @@ public class EntregasActivity extends BaseDrawerActivity implements EntregaAdapt
         carregarEntregas();
     }
 
-    @Override
-    protected int getCurrentMenuItemId() {
-        return R.id.nav_entregas;
-    }
+
 
     private void inicializarComponentes() {
         swipeRefreshLayout = findViewById(R.id.swipeRefreshEntregas);

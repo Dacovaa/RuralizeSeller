@@ -192,8 +192,7 @@ public class CadastroActivity extends ComponentActivity {
             );
 
             Request request = new Request.Builder()
-                    .url(ApiConfig.signUp()) // TODO: ajuste conforme a rota de cadastro do novo backend
-                    // TODO: incluir headers (ex.: Authorization/api-key) se necessário
+                    .url(ApiConfig.signUp())
                     .post(body)
                     .addHeader("Content-Type", "application/json")
                     .build();

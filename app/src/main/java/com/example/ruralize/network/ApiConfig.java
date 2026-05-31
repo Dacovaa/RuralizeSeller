@@ -21,10 +21,10 @@ public final class ApiConfig {
     /**
      * Caminhos principais utilizados atualmente. Ajuste conforme a estrutura de rotas do novo backend.
      */
-    public static final String AUTH_PATH = "/auth";           // TODO: alterar se o novo backend usar outro prefixo
-    public static final String PRODUCTS_PATH = "/products";   // TODO: ajustar se necessário
-    public static final String SALES_PATH = "/sales";         // TODO: ajustar se necessário
-    public static final String DELIVERIES_PATH = "/deliveries"; // TODO: ajustar se necessário
+    public static final String AUTH_PATH = "/auth";
+    public static final String PRODUCTS_PATH = "/products";
+    public static final String SALES_PATH = "/orders";
+    public static final String DELIVERIES_PATH = "/deliveries";
 
     // ---------- AUTH ----------
 
@@ -69,7 +69,7 @@ public final class ApiConfig {
     // ---------- SALES ----------
 
     public static String salesByUser(String uid) {
-        return BASE_URL + SALES_PATH + "/" + uid;
+        return BASE_URL + SALES_PATH + "/totalVendas/" + uid;
     }
 
     // ---------- DELIVERIES ----------

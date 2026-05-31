@@ -92,11 +92,7 @@ public abstract class BaseDrawerActivity extends AppCompatActivity {
             intent = new Intent(this, VendasActivity.class);
         } else if (id == R.id.nav_catalogo) {
             onCatalogoSelected();
-        } else if (id == R.id.nav_estoque) {
-            intent = new Intent(this, EstoqueActivity.class);
-        } else if (id == R.id.nav_entregas) {
-            intent = new Intent(this, EntregasActivity.class);
-        } else if (id == R.id.nav_minha_conta) {
+        }  else if (id == R.id.nav_minha_conta) {
             intent = new Intent(this, MinhaContaActivity.class);
         } else if (id == R.id.nav_sair) {
             realizarLogout();

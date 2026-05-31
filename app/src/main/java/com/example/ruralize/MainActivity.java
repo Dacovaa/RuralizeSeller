@@ -5,6 +5,7 @@ import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.example.ruralize.ui.CatalogFragment;
 import com.example.ruralize.ui.DashboardFragment;
+import com.example.ruralize.ui.DeliveriesFragment;
 import com.example.ruralize.ui.ProfileFragment;
 import com.example.ruralize.ui.SalesFragment;
 import com.google.android.material.appbar.MaterialToolbar;
@@ -34,6 +35,9 @@ public class MainActivity extends AppCompatActivity {
             } else if (itemId == R.id.nav_sales) {
                 selectedFragment = new SalesFragment();
                 title = "Vendas";
+            } else if (itemId == R.id.nav_deliveries) {
+                selectedFragment = new DeliveriesFragment();
+                title = "Entregas";
             } else if (itemId == R.id.nav_profile) {
                 selectedFragment = new ProfileFragment();
                 title = "Minha Conta";

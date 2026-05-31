@@ -1,6 +1,7 @@
 package com.example.ruralize;
 
 import android.os.Bundle;
+import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.example.ruralize.ui.CatalogFragment;
@@ -20,6 +21,15 @@ public class MainActivity extends AppCompatActivity {
 
         MaterialToolbar toolbar = findViewById(R.id.toolbar);
         BottomNavigationView bottomNav = findViewById(R.id.bottom_navigation);
+
+        toolbar.inflateMenu(R.menu.toolbar_menu);
+        toolbar.setOnMenuItemClickListener(item -> {
+            if (item.getItemId() == R.id.action_notifications) {
+                Toast.makeText(this, "Abrindo notificações...", Toast.LENGTH_SHORT).show();
+                return true;
+            }
+            return false;
+        });
 
         bottomNav.setOnItemSelectedListener(item -> {
             Fragment selectedFragment = null;

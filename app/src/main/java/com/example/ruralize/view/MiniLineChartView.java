@@ -3,6 +3,7 @@ package com.example.ruralize.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.Path;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -14,8 +15,11 @@ import java.util.List;
 public class MiniLineChartView extends View {
 
     private final Paint linePaint = new Paint(Paint.ANTI_ALIAS_FLAG);
+    private final Paint fillPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint axisPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final List<Float> values = new ArrayList<>();
+    private final Path linePath = new Path();
+    private final Path fillPath = new Path();
 
     public MiniLineChartView(Context context) {
         super(context);
@@ -33,12 +37,16 @@ public class MiniLineChartView extends View {
     }
 
     private void init() {
-        linePaint.setColor(0xFF6B8E62);
+        linePaint.setColor(0xFF2F5D39);
         linePaint.setStrokeWidth(6f);
         linePaint.setStyle(Paint.Style.STROKE);
         linePaint.setStrokeCap(Paint.Cap.ROUND);
+        linePaint.setStrokeJoin(Paint.Join.ROUND);
 
-        axisPaint.setColor(0x336B8E62);
+        fillPaint.setColor(0x333D7C4A);
+        fillPaint.setStyle(Paint.Style.FILL);
+
+        axisPaint.setColor(0x332F5D39);
         axisPaint.setStrokeWidth(2f);
     }
 
@@ -56,15 +64,11 @@ public class MiniLineChartView extends View {
 
         float width = getWidth();
         float height = getHeight();
-        if (width <= 0 || height <= 0) {
-            return;
-        }
+        if (width <= 0 || height <= 0) return;
 
         canvas.drawLine(0, height - 6, width, height - 6, axisPaint);
 
-        if (values.isEmpty()) {
-            return;
-        }
+        if (values.isEmpty()) return;
 
         float max = Float.MIN_VALUE;
         float min = Float.MAX_VALUE;
@@ -82,22 +86,38 @@ public class MiniLineChartView extends View {
         float range = max - min;
         float stepX = width / Math.max(values.size() - 1, 1);
 
-        Float previousX = null;
-        Float previousY = null;
+        linePath.reset();
+        fillPath.reset();
+
+        float firstX = 0, firstY = 0, lastX = 0, lastY = 0;
+        float previousX = 0, previousY = 0;
+
         for (int i = 0; i < values.size(); i++) {
             Float value = values.get(i);
-            if (value == null) continue;
+            if (value == null) value = 0f;
+            
             float x = i * stepX;
             float normalized = (value - min) / range;
-            float y = height - (normalized * (height - 12)) - 6;
+            float y = height - (normalized * (height - 24)) - 12;
 
-            if (previousX != null && previousY != null) {
-                canvas.drawLine(previousX, previousY, x, y, linePaint);
+            if (i == 0) {
+                linePath.moveTo(x, y);
+                firstX = x; firstY = y;
+            } else {
+                float cpX = (previousX + x) / 2f;
+                linePath.cubicTo(cpX, previousY, cpX, y, x, y);
             }
 
-            previousX = x;
-            previousY = y;
+            previousX = x; previousY = y;
+            lastX = x; lastY = y;
         }
+
+        fillPath.addPath(linePath);
+        fillPath.lineTo(lastX, height - 6);
+        fillPath.lineTo(firstX, height - 6);
+        fillPath.close();
+
+        canvas.drawPath(fillPath, fillPaint);
+        canvas.drawPath(linePath, linePaint);
     }
 }
-

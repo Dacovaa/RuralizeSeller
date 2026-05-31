@@ -28,6 +28,9 @@ public class Produto {
     @SerializedName("fotos")
     private List<String> fotosUrls;
 
+    @SerializedName("options")
+    private List<Option> options;
+
     public Produto(String id, String titulo, String descricao, double preco, int estoque, String categoria, List<String> fotosUrls) {
         this.id = id;
         this.titulo = titulo;
@@ -70,4 +73,39 @@ public class Produto {
 
     public List<String> getFotosUrls() { return fotosUrls; }
     public void setFotosUrls(List<String> fotosUrls) { this.fotosUrls = fotosUrls; }
+
+    public List<Option> getOptions() { return options; }
+    public void setOptions(List<Option> options) { this.options = options; }
+
+    public static class Suboption {
+        @SerializedName("id")
+        private String id;
+        @SerializedName("name")
+        private String name;
+
+        public Suboption(String id, String name) {
+            this.id = id;
+            this.name = name;
+        }
+        public String getId() { return id; }
+        public String getName() { return name; }
+    }
+
+    public static class Option {
+        @SerializedName("id")
+        private String id;
+        @SerializedName("name")
+        private String name;
+        @SerializedName("suboptions")
+        private List<Suboption> suboptions;
+
+        public Option(String id, String name, List<Suboption> suboptions) {
+            this.id = id;
+            this.name = name;
+            this.suboptions = suboptions;
+        }
+        public String getId() { return id; }
+        public String getName() { return name; }
+        public List<Suboption> getSuboptions() { return suboptions; }
+    }
 }

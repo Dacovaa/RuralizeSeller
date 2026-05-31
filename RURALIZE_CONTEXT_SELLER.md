@@ -74,7 +74,7 @@ A documentação completa dos endpoints (Swagger) pode ser acessada em: `https:/
 - [x] **Integração de Entregas:** Atualizar a `EntregasActivity` (ou criar `DeliveriesFragment`) assim que a API suportar `/deliveries`. (API Concluída)
 - [x] **Central de Notificações:** Implementar a tela que abre ao clicar no ícone de "Sininho". (API Concluída com suporte a gatilhos de estoque e vendas)
 - [ ] **Variações de Produtos:** Adicionar campos para tamanho/peso no formulário de `NovoProdutoActivity`.
-- [ ] **Charts Modernos:** Atualizar `MiniBarChartView` e `MiniLineChartView` para o estilo Agro-Modern.
+- [x] **Charts Modernos:** Atualizar `MiniBarChartView` e `MiniLineChartView` para o estilo Agro-Modern.
 
 ---
 

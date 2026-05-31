@@ -1,0 +1,57 @@
+<?xml version="1.0" encoding="utf-8"?>
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:layout_width="match_parent"
+    android:layout_height="match_parent"
+    android:orientation="vertical"
+    android:background="@color/bg_ice">
+
+    <!-- Header FIXO no topo -->
+    <LinearLayout
+        android:layout_width="match_parent"
+        android:layout_height="wrap_content"
+        android:orientation="vertical"
+        android:padding="24dp">
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginBottom="24dp"
+            android:gravity="center"
+            android:text="Meus Produtos"
+            android:textColor="@color/green_dark"
+            android:textSize="20sp"
+            android:textStyle="bold" />
+
+        <!-- Botão Novo Produto -->
+        <Button
+            android:id="@+id/btnNovoProduto"
+            style="@style/Ruralize.Button"
+            android:layout_width="match_parent"
+            android:layout_height="54dp"
+            android:layout_marginBottom="16dp"
+            android:text="➕ Novo Produto"
+            android:textSize="16sp" />
+
+        <!-- Mensagem quando não há produtos -->
+        <TextView
+            android:id="@+id/txtSemProdutos"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:gravity="center"
+            android:padding="40dp"
+            android:text="Nenhum produto cadastrado\nClique no + para adicionar seu primeiro produto"
+            android:textColor="@color/text_secondary"
+            android:textSize="16sp"
+            android:visibility="visible" />
+
+    </LinearLayout>
+
+    <!-- RecyclerView ocupa o restante da tela e faz sua própria rolagem -->
+    <androidx.recyclerview.widget.RecyclerView
+        android:id="@+id/recyclerViewProdutos"
+        android:layout_width="match_parent"
+        android:layout_height="0dp"
+        android:layout_weight="1"
+        android:visibility="gone" />
+
+</LinearLayout>

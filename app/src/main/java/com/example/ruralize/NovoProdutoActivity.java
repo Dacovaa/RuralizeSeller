@@ -52,7 +52,7 @@ public class NovoProdutoActivity extends ComponentActivity {
     private static final int MAX_FOTOS = 5;
     private LinearLayout containerFotos;
     private Spinner spinnerCategoria;
-    private EditText edtPreco, edtEstoque, edtTitulo, edtDescricao;
+    private EditText edtPreco, edtEstoque, edtTitulo, edtDescricao, edtOpcaoNome, edtOpcaoValores;
     private Button btnEnviar, btnVoltar, btnAdicionarFoto;
     private boolean modoEdicao = false;
     private String produtoId = null;
@@ -166,6 +166,27 @@ public class NovoProdutoActivity extends ComponentActivity {
                 }
             }
 
+            // Popula opções se existirem no ProdutoManager
+            if (produtoId != null) {
+                Produto p = ProdutoManager.getInstance().getProdutoPorId(produtoId);
+                if (p != null && p.getOptions() != null && !p.getOptions().isEmpty()) {
+                    Produto.Option firstOption = p.getOptions().get(0);
+                    edtOpcaoNome.setText(firstOption.getName());
+
+                    StringBuilder valores = new StringBuilder();
+                    java.util.List<Produto.Suboption> subs = firstOption.getSuboptions();
+                    if (subs != null) {
+                        for (int i = 0; i < subs.size(); i++) {
+                            valores.append(subs.get(i).getName());
+                            if (i < subs.size() - 1) {
+                                valores.append(", ");
+                            }
+                        }
+                    }
+                    edtOpcaoValores.setText(valores.toString());
+                }
+            }
+
             btnEnviar = findViewById(R.id.btnEnviar);
             btnEnviar.setText("Salvar Alterações");
         }
@@ -255,6 +276,8 @@ public class NovoProdutoActivity extends ComponentActivity {
         edtDescricao = findViewById(R.id.edtDescricao);
         edtPreco = findViewById(R.id.edtPreco);
         edtEstoque = findViewById(R.id.edtEstoque);
+        edtOpcaoNome = findViewById(R.id.edtOpcaoNome);
+        edtOpcaoValores = findViewById(R.id.edtOpcaoValores);
         spinnerCategoria = findViewById(R.id.spinnerCategoria);
         containerFotos = findViewById(R.id.containerFotos);
 
@@ -307,6 +330,30 @@ public class NovoProdutoActivity extends ComponentActivity {
         atualizarInterface();
     }
 
+    private java.util.List<Produto.Option> parseOptions() {
+        String nome = edtOpcaoNome.getText().toString().trim();
+        String valoresStr = edtOpcaoValores.getText().toString().trim();
+
+        if (nome.isEmpty() || valoresStr.isEmpty()) {
+            return null;
+        }
+
+        java.util.List<Produto.Suboption> suboptions = new java.util.ArrayList<>();
+        String[] valores = valoresStr.split(",");
+        for (int i = 0; i < valores.length; i++) {
+            String valor = valores[i].trim();
+            if (!valor.isEmpty()) {
+                suboptions.add(new Produto.Suboption(java.util.UUID.randomUUID().toString(), valor));
+            }
+        }
+
+        if (suboptions.isEmpty()) return null;
+
+        java.util.List<Produto.Option> optionsList = new java.util.ArrayList<>();
+        optionsList.add(new Produto.Option(java.util.UUID.randomUUID().toString(), nome, suboptions));
+        return optionsList;
+    }
+
     private void atualizarProduto(String id, String titulo, String descricao, String preco, String estoque, String categoria) {
         btnEnviar = findViewById(R.id.btnEnviar);
         btnEnviar.setEnabled(false);
@@ -332,6 +379,7 @@ public class NovoProdutoActivity extends ComponentActivity {
         if (validarCampos()) return;
 
         Produto produto = new Produto(id, titulo, descricao, Double.parseDouble(preco), Integer.parseInt(estoque), categoria, fotosUrls);
+        produto.setOptions(parseOptions());
         
         ProductService productService = RetrofitClient.getClient().create(ProductService.class);
         productService.updateProduct(uid, id, produto).enqueue(new Callback<Produto>() {
@@ -388,6 +436,7 @@ public class NovoProdutoActivity extends ComponentActivity {
 
         Produto produto = new Produto(null, titulo, descricao, Double.parseDouble(preco), Integer.parseInt(estoque), categoria, new ArrayList<>());
         produto.setEmpresaId(uid);
+        produto.setOptions(parseOptions());
 
         ProductService productService = RetrofitClient.getClient().create(ProductService.class);
         productService.createProduct(produto).enqueue(new Callback<Produto>() {

@@ -23,6 +23,7 @@ import okhttp3.OkHttpClient;
 import okhttp3.Request;
 import okhttp3.Response;
 
+import org.json.JSONArray;
 import org.json.JSONException;
 import org.json.JSONObject;
 
@@ -35,7 +36,7 @@ public class DashboardFragment extends Fragment {
     private final OkHttpClient client = new OkHttpClient();
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
 
-    private TextView txtTotalVendas, txtTotalPedidos;
+    private TextView txtTotalVendas, txtTotalPedidos, txtAtividadeRecente;
 
     @Nullable
     @Override
@@ -43,6 +44,7 @@ public class DashboardFragment extends Fragment {
         View view = inflater.inflate(R.layout.fragment_dashboard, container, false);
         txtTotalVendas = view.findViewById(R.id.txtTotalVendas);
         txtTotalPedidos = view.findViewById(R.id.txtTotalPedidos);
+        txtAtividadeRecente = view.findViewById(R.id.txtAtividadeRecente);
         return view;
     }
 
@@ -50,6 +52,7 @@ public class DashboardFragment extends Fragment {
     public void onViewCreated(@NonNull View view, @Nullable Bundle savedInstanceState) {
         super.onViewCreated(view, savedInstanceState);
         carregarResumoVendas();
+        carregarNotificacoesRecentes();
     }
 
     private void carregarResumoVendas() {
@@ -129,5 +132,51 @@ public class DashboardFragment extends Fragment {
                     totalPedidos + (totalPedidos == 1 ? " pedido" : " pedidos")
             );
         }
+    }
+
+    private void carregarNotificacoesRecentes() {
+        FirebaseUser currentUser = FirebaseAuth.getInstance().getCurrentUser();
+        if (currentUser == null) return;
+
+        String uid = currentUser.getUid();
+        String url = ApiConfig.notificationsByUser(uid);
+
+        Request request = new Request.Builder()
+                .url(url)
+                .get()
+                .build();
+
+        client.newCall(request).enqueue(new Callback() {
+            @Override
+            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+                // Silently fail for dashboard background activity
+            }
+
+            @Override
+            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+                if (!response.isSuccessful()) return;
+
+                String responseBody = response.body() != null ? response.body().string() : "";
+                try {
+                    JSONArray array = new JSONArray(responseBody);
+                    if (array.length() > 0) {
+                        JSONObject last = array.getJSONObject(0);
+                        String title = last.optString("title", "");
+                        String message = last.optString("message", "");
+                        
+                        if (isAdded() && getActivity() != null) {
+                            getActivity().runOnUiThread(() -> {
+                                if (txtAtividadeRecente != null) {
+                                    txtAtividadeRecente.setText(title + ": " + message);
+                                    txtAtividadeRecente.setTextColor(getResources().getColor(R.color.text_primary));
+                                }
+                            });
+                        }
+                    }
+                } catch (JSONException e) {
+                    e.printStackTrace();
+                }
+            }
+        });
     }
 }

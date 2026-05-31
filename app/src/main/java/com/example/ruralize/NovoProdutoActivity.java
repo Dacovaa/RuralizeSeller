@@ -25,7 +25,8 @@ import androidx.activity.result.contract.ActivityResultContracts;
 import androidx.annotation.NonNull;
 
 import com.bumptech.glide.Glide;
-import com.example.ruralize.network.ApiConfig;
+import com.example.ruralize.network.RetrofitClient;
+import com.example.ruralize.network.services.ProductService;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
@@ -36,6 +37,14 @@ import java.io.InputStream;
 import java.util.ArrayList;
 import java.util.Objects;
 import java.util.function.Consumer;
+
+import okhttp3.MediaType;
+import okhttp3.MultipartBody;
+import okhttp3.RequestBody;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class NovoProdutoActivity extends ComponentActivity {
 
@@ -306,6 +315,8 @@ public class NovoProdutoActivity extends ComponentActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Usuário não autenticado", Toast.LENGTH_SHORT).show();
+            btnEnviar.setEnabled(true);
+            btnEnviar.setText("Salvar Alterações");
             return;
         }
 
@@ -314,82 +325,39 @@ public class NovoProdutoActivity extends ComponentActivity {
         if (fotosSelecionadas.isEmpty() && fotosUrls.isEmpty()) {
             Toast.makeText(this, "Adicione pelo menos uma foto!", Toast.LENGTH_SHORT).show();
             btnEnviar.setEnabled(true);
-            btnEnviar.setText("Salvar alterações");
+            btnEnviar.setText("Salvar Alterações");
             return;
         }
 
         if (validarCampos()) return;
 
-        org.json.JSONObject jsonBody = new org.json.JSONObject();
-        try {
-            jsonBody.put("titulo", titulo);
-            jsonBody.put("descricao", descricao);
-            jsonBody.put("preco", Double.parseDouble(preco));
-            jsonBody.put("estoque", Integer.parseInt(estoque));
-            jsonBody.put("categoria", categoria);
-            org.json.JSONArray urlsArray = new org.json.JSONArray(fotosUrls);
-            jsonBody.put("fotos", urlsArray);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(this, "Erro ao montar JSON", Toast.LENGTH_SHORT).show();
-            return;
-        }
-
-        okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
-        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
-        okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
-
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(ApiConfig.productUpdate(uid, id))
-                .patch(body)
-                .build();
-
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        Produto produto = new Produto(id, titulo, descricao, Double.parseDouble(preco), Integer.parseInt(estoque), categoria, fotosUrls);
+        
+        ProductService productService = RetrofitClient.getClient().create(ProductService.class);
+        productService.updateProduct(uid, id, produto).enqueue(new Callback<Produto>() {
             @Override
-            public void onFailure(okhttp3.Call call, IOException e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(NovoProdutoActivity.this, "Erro ao atualizar produto: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            public void onResponse(@NonNull Call<Produto> call, @NonNull Response<Produto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String produtoIdResponse = response.body().getId();
+
+                    if (!fotosSelecionadas.isEmpty()) {
+                        enviarFotosSequentialmente(uid, produtoIdResponse, btnEnviar, "update");
+                    } else {
+                        Toast.makeText(NovoProdutoActivity.this, "Produto atualizado com sucesso!", Toast.LENGTH_LONG).show();
+                        finish();
+                    }
+                } else {
+                    Toast.makeText(NovoProdutoActivity.this, "Erro: " + response.code(), Toast.LENGTH_LONG).show();
                     btnEnviar.setEnabled(true);
                     btnEnviar.setText("Salvar Alterações");
-                });
+                }
             }
 
             @Override
-            public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
-                runOnUiThread(() -> {
-                    if (!response.isSuccessful()) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(NovoProdutoActivity.this, "❌ Erro: " + response.code(), Toast.LENGTH_LONG).show();
-                            btnEnviar.setEnabled(true);
-                            btnEnviar.setText("Salvar Alterações");
-                        });
-                    }
-                    String responseBody = null;
-                    try {
-                        assert response.body() != null;
-                        responseBody = response.body().string();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    try {
-                        org.json.JSONObject json = new org.json.JSONObject(responseBody);
-                        String produtoId = json.getString("id");
-
-                        if (!fotosSelecionadas.isEmpty()) {
-                            enviarFotosSequentialmente(uid, produtoId, btnEnviar, "update");
-                        } else {
-                            runOnUiThread(() -> {
-                                Toast.makeText(NovoProdutoActivity.this, "Produto atualizado com sucesso!", Toast.LENGTH_LONG).show();
-                                finish();
-                            });
-                        }
-
-                    } catch (Exception e) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(NovoProdutoActivity.this, "Erro ao ler resposta do servidor", Toast.LENGTH_LONG).show();
-                        });
-                    }
-                });
+            public void onFailure(@NonNull Call<Produto> call, @NonNull Throwable t) {
+                Toast.makeText(NovoProdutoActivity.this, "Erro de conexão: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                btnEnviar.setEnabled(true);
+                btnEnviar.setText("Salvar Alterações");
             }
         });
     }
@@ -402,6 +370,8 @@ public class NovoProdutoActivity extends ComponentActivity {
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) {
             Toast.makeText(this, "Usuário não autenticado", Toast.LENGTH_SHORT).show();
+            btnEnviar.setEnabled(true);
+            btnEnviar.setText("Enviar Produto");
             return;
         }
 
@@ -416,68 +386,28 @@ public class NovoProdutoActivity extends ComponentActivity {
 
         if (validarCampos()) return;
 
-        org.json.JSONObject jsonBody = new org.json.JSONObject();
-        try {
-            jsonBody.put("titulo", titulo);
-            jsonBody.put("descricao", descricao);
-            jsonBody.put("preco", Double.parseDouble(preco));
-            jsonBody.put("estoque", Integer.parseInt(estoque));
-            jsonBody.put("categoria", categoria);
-            jsonBody.put("empresaId", uid);
-        } catch (Exception e) {
-            e.printStackTrace();
-            Toast.makeText(NovoProdutoActivity.this, "Erro ao montar JSON", Toast.LENGTH_SHORT).show();
-            return;
-        }
+        Produto produto = new Produto(null, titulo, descricao, Double.parseDouble(preco), Integer.parseInt(estoque), categoria, new ArrayList<>());
+        produto.setEmpresaId(uid);
 
-        okhttp3.MediaType JSON = okhttp3.MediaType.get("application/json; charset=utf-8");
-        okhttp3.OkHttpClient client = new okhttp3.OkHttpClient();
-        okhttp3.RequestBody body = okhttp3.RequestBody.create(jsonBody.toString(), JSON);
-        okhttp3.Request request = new okhttp3.Request.Builder()
-                .url(ApiConfig.productsCollection())
-                .post(body)
-                .build();
-
-        client.newCall(request).enqueue(new okhttp3.Callback() {
+        ProductService productService = RetrofitClient.getClient().create(ProductService.class);
+        productService.createProduct(produto).enqueue(new Callback<Produto>() {
             @Override
-            public void onFailure(okhttp3.Call call, IOException e) {
-                runOnUiThread(() -> {
-                    Toast.makeText(NovoProdutoActivity.this, "Erro ao enviar produto: " + e.getMessage(), Toast.LENGTH_LONG).show();
+            public void onResponse(@NonNull Call<Produto> call, @NonNull Response<Produto> response) {
+                if (response.isSuccessful() && response.body() != null) {
+                    String produtoIdResponse = response.body().getId();
+                    enviarFotosSequentialmente(uid, produtoIdResponse, btnEnviar, "insert");
+                } else {
+                    Toast.makeText(NovoProdutoActivity.this, "Erro: " + response.code(), Toast.LENGTH_LONG).show();
                     btnEnviar.setEnabled(true);
                     btnEnviar.setText("Enviar Produto");
-                });
+                }
             }
 
             @Override
-            public void onResponse(okhttp3.Call call, okhttp3.Response response) {
-                runOnUiThread(() -> {
-                    if (!response.isSuccessful()) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(NovoProdutoActivity.this, "❌ Erro: " + response.code(), Toast.LENGTH_LONG).show();
-                            btnEnviar.setEnabled(true);
-                            btnEnviar.setText("Enviar Produto");
-                        });
-                    }
-                    String responseBody = null;
-                    try {
-                        assert response.body() != null;
-                        responseBody = response.body().string();
-                    } catch (IOException e) {
-                        throw new RuntimeException(e);
-                    }
-                    try {
-                        org.json.JSONObject json = new org.json.JSONObject(responseBody);
-                        String produtoId = json.getString("id");
-
-                        enviarFotosSequentialmente(uid, produtoId, btnEnviar, "insert");
-
-                    } catch (Exception e) {
-                        runOnUiThread(() -> {
-                            Toast.makeText(NovoProdutoActivity.this, "Erro ao ler resposta do servidor", Toast.LENGTH_LONG).show();
-                        });
-                    }
-
-                });
+            public void onFailure(@NonNull Call<Produto> call, @NonNull Throwable t) {
+                Toast.makeText(NovoProdutoActivity.this, "Erro de conexão: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                btnEnviar.setEnabled(true);
+                btnEnviar.setText("Enviar Produto");
             }
         });
     }
@@ -670,52 +600,33 @@ public class NovoProdutoActivity extends ComponentActivity {
                 return;
             }
 
-            // --- PREPARAÇÃO DO REQUEST ---
+            // --- PREPARAÇÃO DO REQUEST COM RETROFIT ---
             String uniqueName = "foto_" + java.util.UUID.randomUUID() + ".jpg";
 
-            okhttp3.RequestBody fileBody = okhttp3.RequestBody.create(
+            RequestBody fileBody = RequestBody.create(
                     bytes,
-                    okhttp3.MediaType.parse("image/jpeg")
+                    MediaType.parse("image/jpeg")
             );
 
-            okhttp3.MultipartBody requestBody = new okhttp3.MultipartBody.Builder()
-                    .setType(okhttp3.MultipartBody.FORM)
-                    .addFormDataPart("file", uniqueName, fileBody)
-                    .build();
+            MultipartBody.Part multipartBodyPart = MultipartBody.Part.createFormData("file", uniqueName, fileBody);
 
-            okhttp3.OkHttpClient client = new okhttp3.OkHttpClient.Builder()
-                    .connectTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                    .writeTimeout(30, java.util.concurrent.TimeUnit.SECONDS)
-                    .build();
-
-            String url = ApiConfig.uploadProductImage(empresaId, produtoId);
-
-            okhttp3.Request request = new okhttp3.Request.Builder()
-                    .url(url)
-                    .post(requestBody)
-                    .build();
-
-            client.newCall(request).enqueue(new okhttp3.Callback() {
+            ProductService productService = RetrofitClient.getClient().create(ProductService.class);
+            productService.uploadImage(empresaId, produtoId, multipartBodyPart).enqueue(new Callback<ResponseBody>() {
                 @Override
-                public void onFailure(okhttp3.Call call, IOException e) {
-                    Log.e("RURALIZE_ERRO", "Falha de rede: " + e.getMessage());
-                    runOnUiThread(() -> onError.accept("Erro de conexão: " + e.getMessage()));
+                public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                    if (response.isSuccessful()) {
+                        Log.d("RURALIZE_DEBUG", "Upload ok!");
+                        runOnUiThread(onComplete);
+                    } else {
+                        Log.e("RURALIZE_ERRO", "Status " + response.code());
+                        runOnUiThread(() -> onError.accept("Servidor erro " + response.code()));
+                    }
                 }
 
                 @Override
-                public void onResponse(okhttp3.Call call, okhttp3.Response response) throws IOException {
-                    try (okhttp3.ResponseBody responseBody = response.body()) {
-                        String bodyString = responseBody != null ? responseBody.string() : "";
-
-                        if (!response.isSuccessful()) {
-                            Log.e("RURALIZE_ERRO", "Status " + response.code() + ": " + bodyString);
-                            runOnUiThread(() -> onError.accept("Servidor erro " + response.code()));
-                            return;
-                        }
-
-                        Log.d("RURALIZE_DEBUG", "Upload ok!");
-                        runOnUiThread(onComplete);
-                    }
+                public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                    Log.e("RURALIZE_ERRO", "Falha de rede: " + t.getMessage());
+                    runOnUiThread(() -> onError.accept("Erro de conexão: " + t.getMessage()));
                 }
             });
 

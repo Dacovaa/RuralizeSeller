@@ -15,29 +15,26 @@ import androidx.fragment.app.Fragment;
 
 import com.example.ruralize.Activity;
 import com.example.ruralize.R;
-import com.example.ruralize.network.ApiConfig;
+import com.example.ruralize.network.RetrofitClient;
+import com.example.ruralize.network.services.AuthService;
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import org.json.JSONException;
 import org.json.JSONObject;
 
-import java.io.IOException;
 import java.text.SimpleDateFormat;
 import java.util.Date;
+import java.util.HashMap;
 import java.util.Locale;
-import java.util.concurrent.TimeUnit;
+import java.util.Map;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class ProfileFragment extends Fragment {
 
@@ -89,31 +86,13 @@ public class ProfileFragment extends Fragment {
     }
 
     private void buscarDadosUsuarioDaApi(String uid) {
-        String url = ApiConfig.profile(uid);
-
-        OkHttpClient client = new OkHttpClient();
-
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        AuthService authService = RetrofitClient.getClient().create(AuthService.class);
+        authService.getProfile(uid).enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                if (getActivity() != null) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Falha ao carregar dados", Toast.LENGTH_SHORT).show();
-                    });
-                }
-            }
-
-            @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                 if (response.isSuccessful() && response.body() != null) {
-                    String responseBody = response.body().string();
-
                     try {
+                        String responseBody = response.body().string();
                         JSONObject json = new JSONObject(responseBody);
 
                         String empresa = json.optString("displayName", "");
@@ -134,26 +113,29 @@ public class ProfileFragment extends Fragment {
                         }
 
                         final String finalDataFormatada = dataFormatada;
-                        if (getActivity() != null) {
-                            getActivity().runOnUiThread(() -> {
-                                edtEmpresa.setText(empresa);
-                                edtCnpj.setText(cnpj);
-                                edtEmail.setText(email);
-                                txtDataCadastro.setText(finalDataFormatada);
-                                txtStatus.setText("Ativa");
-                                txtStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark, null));
-                            });
+                        if (isAdded()) {
+                            edtEmpresa.setText(empresa);
+                            edtCnpj.setText(cnpj);
+                            edtEmail.setText(email);
+                            txtDataCadastro.setText(finalDataFormatada);
+                            txtStatus.setText("Ativa");
+                            txtStatus.setTextColor(getResources().getColor(android.R.color.holo_green_dark, null));
                         }
 
                     } catch (Exception e) {
                         e.printStackTrace();
                     }
                 } else {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
-                        });
+                    if (isAdded()) {
+                        Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
                     }
+                }
+            }
+
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                if (isAdded()) {
+                    Toast.makeText(requireContext(), "Falha ao carregar dados", Toast.LENGTH_SHORT).show();
                 }
             }
         });
@@ -212,66 +194,39 @@ public class ProfileFragment extends Fragment {
         btnSalvar.setEnabled(false);
         btnSalvar.setText("Salvando...");
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .build();
-
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
         String uid = currentUser.getUid();
 
-        try {
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("uid", uid);
-            jsonBody.put("email", email);
-            jsonBody.put("displayName", empresa);
-            jsonBody.put("cnpj", cnpj);
+        Map<String, Object> profileData = new HashMap<>();
+        profileData.put("uid", uid);
+        profileData.put("email", email);
+        profileData.put("displayName", empresa);
+        profileData.put("cnpj", cnpj);
 
-            RequestBody body = RequestBody.create(
-                    jsonBody.toString(),
-                    MediaType.parse("application/json; charset=utf-8")
-            );
+        AuthService authService = RetrofitClient.getClient().create(AuthService.class);
+        authService.updateProfile(profileData).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (!isAdded()) return;
+                btnSalvar.setEnabled(true);
+                btnSalvar.setText("Salvar alterações");
 
-            Request request = new Request.Builder()
-                    .url(ApiConfig.updateProfile())
-                    .patch(body)
-                    .addHeader("Content-Type", "application/json")
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            mostrarErroAtualizar();
-                            btnSalvar.setEnabled(true);
-                            btnSalvar.setText("Salvar alterações");
-                        });
-                    }
+                if (response.isSuccessful()) {
+                    mostrarSucessoAtualizar();
+                } else {
+                    mostrarErroAtualizar();
                 }
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            btnSalvar.setEnabled(true);
-                            btnSalvar.setText("Salvar alterações");
+            }
 
-                            if (response.isSuccessful()) {
-                                mostrarSucessoAtualizar();
-                            } else {
-                                mostrarErroAtualizar();
-                            }
-                        });
-                    }
-                }
-            });
-
-        } catch (JSONException e) {
-            btnSalvar.setEnabled(true);
-            btnSalvar.setText("Salvar alterações");
-            mostrarErroAtualizar();
-        }
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                btnSalvar.setEnabled(true);
+                btnSalvar.setText("Salvar alterações");
+                mostrarErroAtualizar();
+            }
+        });
     }
 
     private void mostrarErroAtualizar() {
@@ -362,57 +317,32 @@ public class ProfileFragment extends Fragment {
             return;
         }
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .build();
-
         FirebaseUser currentUser = mAuth.getCurrentUser();
         if (currentUser == null) return;
         String uid = currentUser.getUid();
 
-        try {
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("uid", uid);
-            jsonBody.put("password", novaSenha);
+        Map<String, Object> passwordData = new HashMap<>();
+        passwordData.put("uid", uid);
+        passwordData.put("password", novaSenha);
 
-            RequestBody body = RequestBody.create(
-                    jsonBody.toString(),
-                    MediaType.parse("application/json; charset=utf-8")
-            );
-
-            Request request = new Request.Builder()
-                    .url(ApiConfig.updatePassword())
-                    .patch(body)
-                    .addHeader("Content-Type", "application/json")
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            mostrarErroAtualizarSenha();
-                        });
-                    }
+        AuthService authService = RetrofitClient.getClient().create(AuthService.class);
+        authService.updatePassword(passwordData).enqueue(new Callback<ResponseBody>() {
+            @Override
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    mostrarSucessoAtualizarSenha();
+                } else {
+                    mostrarErroAtualizarSenha();
                 }
-                @Override
-                public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                    if (getActivity() != null) {
-                        getActivity().runOnUiThread(() -> {
-                            if (response.isSuccessful()) {
-                                mostrarSucessoAtualizarSenha();
-                            } else {
-                                mostrarErroAtualizarSenha();
-                            }
-                        });
-                    }
-                }
-            });
+            }
 
-        } catch (JSONException e) {
-            mostrarErroAtualizarSenha();
-        }
+            @Override
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                mostrarErroAtualizarSenha();
+            }
+        });
     }
 
     private void confirmarSaida() {

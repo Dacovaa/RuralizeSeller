@@ -12,9 +12,9 @@ O **RuralizeSeller** é um aplicativo Android desenvolvido para produtores rurai
 - **Linguagem Principal:** Java (com componentes em Kotlin).
 - **Interface:** XML Layouts tradicional + Custom Views para Gráficos.
 - **Autenticação:** Firebase Auth.
-- **Networking:** OkHttp para chamadas REST à API customizada.
+- **Networking:** Retrofit para chamadas REST à API customizada.
 - **Persistência de Imagens:** Cloudinary (via API) + Glide para carregamento.
-- **Serialização:** GSON e JSON nativo.
+- **Serialização:** GSON.
 
 ## 🏗 Arquitetura
 O app segue um padrão baseado em **Activities**, com uma `BaseDrawerActivity` que centraliza a navegação lateral (Navigation Drawer).
@@ -26,12 +26,13 @@ O app segue um padrão baseado em **Activities**, com uma `BaseDrawerActivity` q
 - `EstoqueActivity.java`: Gerenciamento focado em níveis de estoque.
 - `VendasActivity.java`: Histórico e resumo de transações.
 - `EntregasActivity.java`: Gestão logística de pedidos.
-- `network/ApiConfig.java`: Centraliza todos os endpoints da API.
+- `network/RetrofitClient.java` & `network/services/`: Centraliza a comunicação com a API via Retrofit.
 
 ---
 
 ## 🔌 Integração com API (ruralize_api)
 O app se comunica com o backend hospedado em `https://ruralize-api.vercel.app`.
+A documentação completa dos endpoints (Swagger) pode ser acessada em: `https://ruralize-api.vercel.app/api`.
 
 ### Principais Endpoints Consumidos:
 - **Auth:** `/auth/signup`, `/auth/update`, `/auth/updatePassword`.
@@ -41,7 +42,7 @@ O app se comunica com o backend hospedado em `https://ruralize-api.vercel.app`.
 
 ### Fluxo de Dados:
 1. O usuário se autentica via Firebase.
-2. O `uid` do Firebase é usado como identificador único nas chamadas para a `ruralize_api`.
+2. O `uid` do Firebase é usado como identificador único nas chamadas para a `ruralize_api` via interfaces Retrofit.
 3. As imagens são enviadas para a API, que processa o upload para o **Cloudinary** (não utilizamos Firebase Storage para imagens devido a custos).
 
 
@@ -63,9 +64,17 @@ O app se comunica com o backend hospedado em `https://ruralize-api.vercel.app`.
 
 ## 🚩 Pendências e Pontos de Atenção
 
-- **Refatoração para Retrofit:** O app possui a dependência do Retrofit no `build.gradle`, mas atualmente utiliza `OkHttp` puro com `JSONObject`.
 - **Sincronização:** Garantir que as atualizações de estoque no app mobile reflitam instantaneamente no `RuralizeShop`.
 - **Jetpack Compose:** Existe configuração para Compose, mas a interface atual é majoritariamente XML. Futuras features podem adotar Compose.
+
+---
+
+## 📌 TO-DO / Próximos Passos (App Mobile)
+- [x] **Migração Retrofit:** Refatorar as chamadas OkHttp/JSONObject para interfaces Retrofit.
+- [x] **Integração de Entregas:** Atualizar a `EntregasActivity` (ou criar `DeliveriesFragment`) assim que a API suportar `/deliveries`. (API Concluída)
+- [x] **Central de Notificações:** Implementar a tela que abre ao clicar no ícone de "Sininho". (API Concluída com suporte a gatilhos de estoque e vendas)
+- [ ] **Variações de Produtos:** Adicionar campos para tamanho/peso no formulário de `NovoProdutoActivity`.
+- [ ] **Charts Modernos:** Atualizar `MiniBarChartView` e `MiniLineChartView` para o estilo Agro-Modern.
 
 ---
 

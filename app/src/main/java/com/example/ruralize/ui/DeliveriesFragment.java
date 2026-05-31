@@ -19,29 +19,21 @@ import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 import com.example.ruralize.Entrega;
 import com.example.ruralize.EntregaAdapter;
 import com.example.ruralize.R;
-import com.example.ruralize.network.ApiConfig;
+import com.example.ruralize.network.RetrofitClient;
+import com.example.ruralize.network.services.DeliveryService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import org.json.JSONArray;
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
-import java.util.ArrayList;
 import java.util.Collections;
 import java.util.HashMap;
 import java.util.List;
 import java.util.Locale;
 import java.util.Map;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.MediaType;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.RequestBody;
-import okhttp3.Response;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class DeliveriesFragment extends Fragment implements EntregaAdapter.OnEntregaClickListener {
 
@@ -53,7 +45,6 @@ public class DeliveriesFragment extends Fragment implements EntregaAdapter.OnEnt
     private TextView txtTotalEmRota;
     private TextView txtTotalEntregues;
 
-    private final OkHttpClient client = new OkHttpClient();
     private FirebaseAuth firebaseAuth;
     private EntregaAdapter entregaAdapter;
 
@@ -102,74 +93,26 @@ public class DeliveriesFragment extends Fragment implements EntregaAdapter.OnEnt
 
         exibirLoading(true);
 
-        String url = ApiConfig.deliveriesByUser(usuario.getUid());
-
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        DeliveryService deliveryService = RetrofitClient.getClient().create(DeliveryService.class);
+        deliveryService.getDeliveries(usuario.getUid()).enqueue(new Callback<List<Entrega>>() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() -> {
-                    exibirLoading(false);
-                    Toast.makeText(requireContext(), "Erro ao carregar entregas: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+            public void onResponse(@NonNull Call<List<Entrega>> call, @NonNull Response<List<Entrega>> response) {
+                if (!isAdded()) return;
+                exibirLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    atualizarInterface(response.body());
+                } else {
+                    Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (getActivity() == null) return;
-                if (!response.isSuccessful()) {
-                    getActivity().runOnUiThread(() -> {
-                        exibirLoading(false);
-                        Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
-                    });
-                    return;
-                }
-
-                String responseBody = response.body().string();
-                List<Entrega> entregas = interpretarEntregas(responseBody);
-
-                getActivity().runOnUiThread(() -> {
-                    atualizarInterface(entregas);
-                    exibirLoading(false);
-                });
+            public void onFailure(@NonNull Call<List<Entrega>> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                exibirLoading(false);
+                Toast.makeText(requireContext(), "Erro ao carregar entregas: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
-    }
-
-    private List<Entrega> interpretarEntregas(String responseBody) {
-        List<Entrega> entregas = new ArrayList<>();
-        if (responseBody == null || responseBody.isEmpty()) {
-            return entregas;
-        }
-
-        try {
-            JSONArray jsonArray = new JSONArray(responseBody);
-            for (int i = 0; i < jsonArray.length(); i++) {
-                JSONObject json = jsonArray.getJSONObject(i);
-                Entrega entrega = new Entrega(
-                        json.optString("id"),
-                        json.optString("pedidoId"),
-                        json.optString("clienteNome", json.optString("cliente")),
-                        json.optString("status"),
-                        json.optString("dataEntrega", json.optString("data")),
-                        json.optString("endereco"),
-                        json.optDouble("valorTotal"),
-                        json.optString("observacao")
-                );
-                entregas.add(entrega);
-            }
-        } catch (JSONException e) {
-            if (getActivity() != null) {
-                getActivity().runOnUiThread(() -> Toast.makeText(requireContext(), "Erro ao interpretar entregas", Toast.LENGTH_SHORT).show());
-            }
-        }
-
-        return entregas;
     }
 
     private void atualizarInterface(List<Entrega> entregas) {
@@ -224,47 +167,26 @@ public class DeliveriesFragment extends Fragment implements EntregaAdapter.OnEnt
         FirebaseUser user = firebaseAuth.getCurrentUser();
         if (user == null) return;
 
-        String url = ApiConfig.updateDeliveryStatus(user.getUid(), entrega.getId());
+        Map<String, Object> statusData = new HashMap<>();
+        statusData.put("status", novoStatus);
 
-        JSONObject jsonBody = new JSONObject();
-        try {
-            jsonBody.put("status", novoStatus);
-        } catch (JSONException e) {
-            e.printStackTrace();
-        }
-
-        RequestBody body = RequestBody.create(
-                jsonBody.toString(),
-                MediaType.parse("application/json; charset=utf-8")
-        );
-
-        Request request = new Request.Builder()
-                .url(url)
-                .patch(body)
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        DeliveryService deliveryService = RetrofitClient.getClient().create(DeliveryService.class);
+        deliveryService.updateDeliveryStatus(user.getUid(), entrega.getId(), statusData).enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
-                if (getActivity() == null) return;
-                getActivity().runOnUiThread(() ->
-                        Toast.makeText(requireContext(), "Erro ao atualizar status", Toast.LENGTH_SHORT).show()
-                );
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
+                if (!isAdded()) return;
+                if (response.isSuccessful()) {
+                    Toast.makeText(requireContext(), "Status atualizado!", Toast.LENGTH_SHORT).show();
+                    carregarEntregas();
+                } else {
+                    Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (getActivity() == null) return;
-                if (response.isSuccessful()) {
-                    getActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Status atualizado!", Toast.LENGTH_SHORT).show();
-                        carregarEntregas();
-                    });
-                } else {
-                    getActivity().runOnUiThread(() ->
-                            Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show()
-                    );
-                }
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
+                if (!isAdded()) return;
+                Toast.makeText(requireContext(), "Erro ao atualizar status", Toast.LENGTH_SHORT).show();
             }
         });
     }

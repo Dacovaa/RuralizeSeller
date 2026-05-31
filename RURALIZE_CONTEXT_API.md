@@ -59,3 +59,15 @@ O módulo mais crítico para a consistência do ecossistema.
 ## 5. Como a API atende o Web e o Mobile
 - **Mobile (RuralizeSeller):** Consome pesadamente o `OrdersModule` para criar transações e o `ProductsModule` para ler o catálogo e estoque em tempo real.
 - **Web (RuralizeShop):** Focado no consumo de métricas (`getTotalSales`), CRUD intensivo de produtos (Upload de fotos no `ProductsModule`) e gestão da conta (`AuthModule`).
+
+---
+
+## 📌 TO-DO / Próximos Passos (Backend)
+- [x] **Módulo de Entregas:** Criar `DeliveriesModule`, controller e subcoleção no Firestore.
+- [x] **Módulo de Notificações:** Criar `NotificationsModule` e sistema de gatilhos (triggers) para estoque baixo e novas vendas. (Concluído com gatilhos automáticos no OrdersModule)
+- [x] **Documentação Swagger:** Implementar `@nestjs/swagger` para facilitar o mapeamento dos endpoints pelo App/Shop. (Acesse em /api)
+- [ ] **Webhooks de Pagamento:** (Futuro) Preparar integração para confirmação de pagamento vindo do Shop.
+
+---
+
+Última atualização: Maio de 2026.

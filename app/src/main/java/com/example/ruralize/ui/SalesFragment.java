@@ -16,22 +16,18 @@ import androidx.recyclerview.widget.RecyclerView;
 import androidx.swiperefreshlayout.widget.SwipeRefreshLayout;
 
 import com.example.ruralize.R;
-import com.example.ruralize.network.ApiConfig;
+import com.example.ruralize.ResumoVendas;
+import com.example.ruralize.network.RetrofitClient;
+import com.example.ruralize.network.services.SalesService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import org.json.JSONException;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.text.NumberFormat;
 import java.util.Locale;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class SalesFragment extends Fragment {
 
@@ -43,7 +39,6 @@ public class SalesFragment extends Fragment {
     private TextView txtResumoReceitaTotal;
     private RecyclerView recyclerView;
 
-    private final OkHttpClient client = new OkHttpClient();
     private FirebaseAuth mAuth;
 
     private final NumberFormat currencyFormat = NumberFormat.getCurrencyInstance(new Locale("pt", "BR"));
@@ -102,68 +97,46 @@ public class SalesFragment extends Fragment {
         exibirLoading(true);
 
         String uid = currentUser.getUid();
-        String url = ApiConfig.salesByUser(uid);
-
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        SalesService salesService = RetrofitClient.getClient().create(SalesService.class);
+        salesService.getSalesSummary(uid).enqueue(new Callback<ResumoVendas>() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            public void onResponse(@NonNull Call<ResumoVendas> call, @NonNull Response<ResumoVendas> response) {
                 if (!isAdded()) return;
-                requireActivity().runOnUiThread(() -> {
-                    exibirLoading(false);
-                    Toast.makeText(requireContext(), "Erro ao carregar resumo: " + e.getMessage(), Toast.LENGTH_LONG).show();
-                });
+                exibirLoading(false);
+                if (response.isSuccessful() && response.body() != null) {
+                    atualizarResumo(response.body());
+                } else {
+                    Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
+                }
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            public void onFailure(@NonNull Call<ResumoVendas> call, @NonNull Throwable t) {
                 if (!isAdded()) return;
-                if (!response.isSuccessful()) {
-                    requireActivity().runOnUiThread(() -> {
-                        exibirLoading(false);
-                        Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
-                    });
-                    return;
-                }
-
-                String responseBody = response.body().string();
-                requireActivity().runOnUiThread(() -> atualizarResumo(responseBody));
+                exibirLoading(false);
+                Toast.makeText(requireContext(), "Erro ao carregar resumo: " + t.getMessage(), Toast.LENGTH_LONG).show();
             }
         });
     }
 
-    private void atualizarResumo(String json) {
+    private void atualizarResumo(ResumoVendas resumo) {
         if (!isAdded()) return;
         
-        if (json == null || json.isEmpty()) {
+        if (resumo == null) {
             mostrarResumoZerado();
             return;
         }
 
-        try {
-            JSONObject obj = new JSONObject(json);
+        double total = resumo.getTotal();
+        int totalOrders = resumo.getTotalOrders();
+        int orderProductQuantity = resumo.getOrderProductQuantity();
 
-            double total = obj.optDouble("total", 0.0);
-            int totalOrders = obj.optInt("totalOrders", 0);
-            int orderProductQuantity = obj.optInt("orderProductQuantity", 0);
+        txtResumoReceitaTotal.setText(currencyFormat.format(total));
+        txtResumoTotalPedidos.setText(String.valueOf(totalOrders));
+        txtResumoUnidadesVendidas.setText(String.valueOf(orderProductQuantity));
 
-            txtResumoReceitaTotal.setText(currencyFormat.format(total));
-            txtResumoTotalPedidos.setText(String.valueOf(totalOrders));
-            txtResumoUnidadesVendidas.setText(String.valueOf(orderProductQuantity));
-
-            boolean semVendas = totalOrders == 0;
-            txtSemVendas.setVisibility(semVendas ? View.VISIBLE : View.GONE);
-
-        } catch (JSONException e) {
-            Toast.makeText(requireContext(), "Nenhuma Venda Efetuada", Toast.LENGTH_SHORT).show();
-            mostrarResumoZerado();
-        }
-
-        exibirLoading(false);
+        boolean semVendas = totalOrders == 0;
+        txtSemVendas.setVisibility(semVendas ? View.VISIBLE : View.GONE);
     }
 
     private void mostrarResumoZerado() {

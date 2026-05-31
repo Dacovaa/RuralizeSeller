@@ -19,10 +19,10 @@ public interface ProductService {
     Call<List<Produto>> getProducts(@Path("uid") String uid);
 
     @POST("products")
-    Call<ResponseBody> createProduct(@Body Produto product);
+    Call<Produto> createProduct(@Body Produto product);
 
     @PATCH("products/{empresaId}/{productId}")
-    Call<ResponseBody> updateProduct(@Path("empresaId") String empresaId, @Path("productId") String productId, @Body Produto product);
+    Call<Produto> updateProduct(@Path("empresaId") String empresaId, @Path("productId") String productId, @Body Produto product);
 
     @DELETE("products/{uid}/{productId}")
     Call<ResponseBody> deleteProduct(@Path("uid") String uid, @Path("productId") String productId);

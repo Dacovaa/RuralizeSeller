@@ -9,9 +9,13 @@ public class ResumoVendas {
     @SerializedName("totalOrders")
     private final int totalOrders;
 
-    public ResumoVendas(double total, int totalOrders) {
+    @SerializedName("orderProductQuantity")
+    private final int orderProductQuantity;
+
+    public ResumoVendas(double total, int totalOrders, int orderProductQuantity) {
         this.total = total;
         this.totalOrders = totalOrders;
+        this.orderProductQuantity = orderProductQuantity;
     }
 
     public double getTotal() {
@@ -20,5 +24,9 @@ public class ResumoVendas {
 
     public int getTotalOrders() {
         return totalOrders;
+    }
+
+    public int getOrderProductQuantity() {
+        return orderProductQuantity;
     }
 }

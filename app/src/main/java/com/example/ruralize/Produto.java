@@ -22,6 +22,9 @@ public class Produto {
     @SerializedName("categoria")
     private String categoria;
     
+    @SerializedName("empresaId")
+    private String empresaId;
+    
     @SerializedName("fotos")
     private List<String> fotosUrls;
 
@@ -33,6 +36,14 @@ public class Produto {
         this.estoque = estoque;
         this.categoria = categoria;
         this.fotosUrls = fotosUrls;
+    }
+
+    public String getEmpresaId() {
+        return empresaId;
+    }
+
+    public void setEmpresaId(String empresaId) {
+        this.empresaId = empresaId;
     }
 
     // Getters e Setters

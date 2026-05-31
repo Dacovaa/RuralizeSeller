@@ -131,4 +131,12 @@ NEXT_PUBLIC_FIREBASE_APP_ID=...
 
 ---
 
+## 📌 TO-DO / Próximos Passos (Web Shop)
+- [ ] **Checkout Fluido:** Implementar o formulário de pagamento e integração com a rota `/orders` da API.
+- [ ] **Persistência de Carrinho:** Mover o estado do carrinho para LocalStorage ou sincronizar com a API/Auth.
+- [ ] **Busca Global:** Melhorar o filtro de produtos por categoria e nome.
+- [ ] **Perfil do Comprador:** Criar a área logada para o comprador ver seus pedidos realizados.
+
+---
+
 **Última Atualização:** Maio de 2026.

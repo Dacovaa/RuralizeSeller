@@ -3,6 +3,7 @@ package com.example.ruralize.view;
 import android.content.Context;
 import android.graphics.Canvas;
 import android.graphics.Paint;
+import android.graphics.RectF;
 import android.util.AttributeSet;
 import android.view.View;
 
@@ -16,6 +17,7 @@ public class MiniBarChartView extends View {
     private final Paint barPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final Paint axisPaint = new Paint(Paint.ANTI_ALIAS_FLAG);
     private final List<Float> values = new ArrayList<>();
+    private final RectF rectF = new RectF();
 
     public MiniBarChartView(Context context) {
         super(context);
@@ -33,7 +35,7 @@ public class MiniBarChartView extends View {
     }
 
     private void init() {
-        barPaint.setColor(0xFF2F5D39);
+        barPaint.setColor(0xFF3D7C4A);
         axisPaint.setColor(0x332F5D39);
         axisPaint.setStrokeWidth(2f);
     }
@@ -71,13 +73,17 @@ public class MiniBarChartView extends View {
         float spacing = (width - (barWidth * values.size())) / (values.size() + 1);
         float offsetX = spacing;
 
+        float cornerRadius = barWidth / 3f;
+
         for (Float value : values) {
             float percent = value != null ? value / max : 0f;
             float barHeight = percent * (height - 12);
             float top = height - barHeight - 6;
-            canvas.drawRect(offsetX, top, offsetX + barWidth, height - 6, barPaint);
+            
+            rectF.set(offsetX, top, offsetX + barWidth, height - 6 + cornerRadius);
+            canvas.drawRoundRect(rectF, cornerRadius, cornerRadius, barPaint);
+            
             offsetX += barWidth + spacing;
         }
     }
 }
-

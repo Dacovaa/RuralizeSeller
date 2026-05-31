@@ -25,6 +25,7 @@ public final class ApiConfig {
     public static final String PRODUCTS_PATH = "/products";
     public static final String SALES_PATH = "/orders";
     public static final String DELIVERIES_PATH = "/deliveries";
+    public static final String NOTIFICATIONS_PATH = "/notifications";
 
     // ---------- AUTH ----------
 
@@ -76,6 +77,20 @@ public final class ApiConfig {
 
     public static String deliveriesByUser(String uid) {
         return BASE_URL + DELIVERIES_PATH + "/" + uid;
+    }
+
+    public static String updateDeliveryStatus(String uid, String deliveryId) {
+        return BASE_URL + DELIVERIES_PATH + "/" + uid + "/" + deliveryId;
+    }
+
+    // ---------- NOTIFICATIONS ----------
+
+    public static String notificationsByUser(String uid) {
+        return BASE_URL + NOTIFICATIONS_PATH + "/" + uid;
+    }
+
+    public static String markNotificationRead(String uid, String notificationId) {
+        return BASE_URL + NOTIFICATIONS_PATH + "/" + uid + "/" + notificationId + "/read";
     }
 }
 

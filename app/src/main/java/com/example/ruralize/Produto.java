@@ -1,17 +1,28 @@
 package com.example.ruralize;
 
-import org.json.JSONArray;
-
-import java.util.ArrayList;
+import com.google.gson.annotations.SerializedName;
 import java.util.List;
 
 public class Produto {
+    @SerializedName("id")
     private String id;
+    
+    @SerializedName("titulo")
     private String titulo;
+    
+    @SerializedName("descricao")
     private String descricao;
+    
+    @SerializedName("preco")
     private double preco;
+    
+    @SerializedName("estoque")
     private int estoque;
+    
+    @SerializedName("categoria")
     private String categoria;
+    
+    @SerializedName("fotos")
     private List<String> fotosUrls;
 
     public Produto(String id, String titulo, String descricao, double preco, int estoque, String categoria, List<String> fotosUrls) {

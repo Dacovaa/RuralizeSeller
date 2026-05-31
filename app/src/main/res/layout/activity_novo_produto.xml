@@ -173,6 +173,50 @@
             android:padding="12dp"
             android:layout_marginBottom="16dp" />
 
+        <!-- Variações -->
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Variações (Opcional):"
+            android:textSize="16sp"
+            android:textStyle="bold"
+            android:textColor="@color/green_dark"
+            android:layout_marginBottom="8dp" />
+            
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Tipo (Ex: Tamanho, Peso, Cor)"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/edtOpcaoNome"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ex: Peso"
+            android:background="@drawable/bg_edittext_simple"
+            android:padding="12dp"
+            android:layout_marginBottom="12dp" />
+
+        <TextView
+            android:layout_width="wrap_content"
+            android:layout_height="wrap_content"
+            android:text="Valores (Separados por vírgula)"
+            android:textSize="14sp"
+            android:textColor="@color/text_primary"
+            android:layout_marginBottom="4dp" />
+
+        <EditText
+            android:id="@+id/edtOpcaoValores"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:hint="Ex: 1kg, 2kg, 5kg"
+            android:background="@drawable/bg_edittext_simple"
+            android:padding="12dp"
+            android:layout_marginBottom="24dp" />
+
         <!-- Descrição -->
         <TextView
             android:layout_width="wrap_content"

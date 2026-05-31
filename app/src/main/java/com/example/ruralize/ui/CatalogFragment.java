@@ -19,22 +19,18 @@ import com.example.ruralize.Produto;
 import com.example.ruralize.ProdutoAdapter;
 import com.example.ruralize.ProdutoManager;
 import com.example.ruralize.R;
-import com.example.ruralize.network.ApiConfig;
+import com.example.ruralize.network.RetrofitClient;
+import com.example.ruralize.network.services.ProductService;
 import com.google.firebase.auth.FirebaseAuth;
 import com.google.firebase.auth.FirebaseUser;
 
-import org.json.JSONArray;
-import org.json.JSONObject;
-
-import java.io.IOException;
 import java.util.ArrayList;
 import java.util.List;
 
-import okhttp3.Call;
-import okhttp3.Callback;
-import okhttp3.OkHttpClient;
-import okhttp3.Request;
-import okhttp3.Response;
+import okhttp3.ResponseBody;
+import retrofit2.Call;
+import retrofit2.Callback;
+import retrofit2.Response;
 
 public class CatalogFragment extends Fragment implements ProdutoAdapter.OnProdutoClickListener {
 
@@ -43,8 +39,6 @@ public class CatalogFragment extends Fragment implements ProdutoAdapter.OnProdut
     private ProdutoAdapter produtoAdapter;
     private ProdutoManager produtoManager;
     private FirebaseAuth mAuth;
-
-    private final OkHttpClient client = new OkHttpClient();
 
     @Nullable
     @Override
@@ -93,68 +87,25 @@ public class CatalogFragment extends Fragment implements ProdutoAdapter.OnProdut
         }
 
         String uid = currentUser.getUid();
-        String url = ApiConfig.productsByUser(uid);
-
-        Request request = new Request.Builder()
-                .url(url)
-                .get()
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        ProductService productService = RetrofitClient.getClient().create(ProductService.class);
+        productService.getProducts(uid).enqueue(new Callback<List<Produto>>() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            public void onResponse(@NonNull Call<List<Produto>> call, @NonNull Response<List<Produto>> response) {
                 if (isAdded()) {
-                    requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), e.getMessage(), Toast.LENGTH_LONG).show();
-                    });
+                    if (response.isSuccessful() && response.body() != null) {
+                        List<Produto> produtos = response.body();
+                        produtoAdapter.atualizarLista(produtos);
+                        verificarListaVazia(produtos);
+                    } else {
+                        Toast.makeText(requireContext(), "Erro ao carregar produtos: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
-                if (response.isSuccessful()) {
-                    String responseBody = response.body().string();
-                    List<Produto> produtos = new ArrayList<>();
-
-                    try {
-                        JSONArray jsonArray = new JSONArray(responseBody);
-                        for (int i = 0; i < jsonArray.length(); i++) {
-                            JSONObject jsonProduto = jsonArray.getJSONObject(i);
-                            JSONArray fotosJson = jsonProduto.optJSONArray("fotos");
-                            List<String> fotosList = new ArrayList<>();
-
-                            if (fotosJson != null) {
-                                for (int j = 0; j < fotosJson.length(); j++) {
-                                    fotosList.add(fotosJson.getString(j));
-                                }
-                            }
-                            Produto p = new Produto(
-                                    jsonProduto.getString("id"),
-                                    jsonProduto.getString("titulo"),
-                                    jsonProduto.getString("descricao"),
-                                    jsonProduto.getDouble("preco"),
-                                    jsonProduto.getInt("estoque"),
-                                    jsonProduto.getString("categoria"),
-                                    fotosList
-                            );
-                            produtos.add(p);
-                        }
-                    } catch (Exception e) {
-                        e.printStackTrace();
-                    }
-
-                    if (isAdded()) {
-                        requireActivity().runOnUiThread(() -> {
-                            produtoAdapter.atualizarLista(produtos);
-                            verificarListaVazia(produtos);
-                        });
-                    }
-                } else {
-                    if (isAdded()) {
-                        requireActivity().runOnUiThread(() -> {
-                            Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
-                        });
-                    }
+            public void onFailure(@NonNull Call<List<Produto>> call, @NonNull Throwable t) {
+                if (isAdded()) {
+                    Toast.makeText(requireContext(), "Erro de conexão: " + t.getMessage(), Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -203,34 +154,24 @@ public class CatalogFragment extends Fragment implements ProdutoAdapter.OnProdut
         }
 
         String uid = currentUser.getUid();
-        String url = ApiConfig.productDelete(uid, produtoId);
-
-        Request request = new Request.Builder()
-                .url(url)
-                .delete()
-                .build();
-
-        client.newCall(request).enqueue(new Callback() {
+        ProductService productService = RetrofitClient.getClient().create(ProductService.class);
+        productService.deleteProduct(uid, produtoId).enqueue(new Callback<ResponseBody>() {
             @Override
-            public void onFailure(@NonNull Call call, @NonNull IOException e) {
+            public void onResponse(@NonNull Call<ResponseBody> call, @NonNull Response<ResponseBody> response) {
                 if (isAdded()) {
-                    requireActivity().runOnUiThread(() -> {
-                        Toast.makeText(requireContext(), "Erro ao excluir produto", Toast.LENGTH_SHORT).show();
-                    });
+                    if (response.isSuccessful()) {
+                        Toast.makeText(requireContext(), "Produto excluído com sucesso!", Toast.LENGTH_SHORT).show();
+                        carregarProdutos();
+                    } else {
+                        Toast.makeText(requireContext(), "Erro ao excluir produto: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
-            public void onResponse(@NonNull Call call, @NonNull Response response) throws IOException {
+            public void onFailure(@NonNull Call<ResponseBody> call, @NonNull Throwable t) {
                 if (isAdded()) {
-                    requireActivity().runOnUiThread(() -> {
-                        if (response.isSuccessful()) {
-                            Toast.makeText(requireContext(), "Produto excluído com sucesso!", Toast.LENGTH_SHORT).show();
-                            carregarProdutos();
-                        } else {
-                            Toast.makeText(requireContext(), "Erro ao excluir produto: " + response.code(), Toast.LENGTH_SHORT).show();
-                        }
-                    });
+                    Toast.makeText(requireContext(), "Erro de conexão ao excluir produto", Toast.LENGTH_SHORT).show();
                 }
             }
         });

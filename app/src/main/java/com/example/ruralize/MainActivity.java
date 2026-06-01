@@ -1,7 +1,7 @@
 package com.example.ruralize;
 
+import android.content.Intent;
 import android.os.Bundle;
-import android.widget.Toast;
 import androidx.appcompat.app.AppCompatActivity;
 import androidx.fragment.app.Fragment;
 import com.example.ruralize.ui.CatalogFragment;
@@ -25,7 +25,10 @@ public class MainActivity extends AppCompatActivity {
         toolbar.inflateMenu(R.menu.toolbar_menu);
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_notifications) {
-                Toast.makeText(this, "Abrindo notificações...", Toast.LENGTH_SHORT).show();
+                Intent intent = new Intent(this, ChatActivity.class);
+                intent.putExtra("chatId", "test_chat");
+                intent.putExtra("buyerName", "Comprador de Teste");
+                startActivity(intent);
                 return true;
             }
             return false;

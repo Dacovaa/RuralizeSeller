@@ -16,6 +16,7 @@
         android:roundIcon="@mipmap/ic_launcher_round"
         android:supportsRtl="true"
         android:theme="@style/Theme.Ruralize"
+        android:usesCleartextTraffic="true"
         >
         <activity
             android:name=".MainActivity"
@@ -49,19 +50,17 @@
             android:exported="false" />
 
         <activity
-            android:name=".DashboardActivity"
-            android:exported="false" />
-
-        <activity
             android:name=".NovoProdutoActivity"
             android:exported="false"
             android:theme="@style/Theme.MaterialComponents.Light.DarkActionBar" />
-        <activity
-            android:name=".EstoqueActivity"
-            android:exported="false" />
 
         <activity
             android:name=".ChatActivity"
+            android:exported="false"
+            android:theme="@style/Theme.Ruralize" />
+
+        <activity
+            android:name=".InboxActivity"
             android:exported="false"
             android:theme="@style/Theme.Ruralize" />
 

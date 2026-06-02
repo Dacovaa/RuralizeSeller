@@ -25,9 +25,7 @@ public class MainActivity extends AppCompatActivity {
         toolbar.inflateMenu(R.menu.toolbar_menu);
         toolbar.setOnMenuItemClickListener(item -> {
             if (item.getItemId() == R.id.action_notifications) {
-                Intent intent = new Intent(this, ChatActivity.class);
-                intent.putExtra("chatId", "test_chat");
-                intent.putExtra("buyerName", "Comprador de Teste");
+                Intent intent = new Intent(this, InboxActivity.class);
                 startActivity(intent);
                 return true;
             }

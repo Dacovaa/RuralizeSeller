@@ -17,7 +17,6 @@ import androidx.recyclerview.widget.RecyclerView;
 import com.example.ruralize.NovoProdutoActivity;
 import com.example.ruralize.Produto;
 import com.example.ruralize.ProdutoAdapter;
-import com.example.ruralize.ProdutoManager;
 import com.example.ruralize.R;
 import com.example.ruralize.network.RetrofitClient;
 import com.example.ruralize.network.services.ProductService;
@@ -37,7 +36,6 @@ public class CatalogFragment extends Fragment implements ProdutoAdapter.OnProdut
     private RecyclerView recyclerViewProdutos;
     private TextView txtSemProdutos;
     private ProdutoAdapter produtoAdapter;
-    private ProdutoManager produtoManager;
     private FirebaseAuth mAuth;
 
     @Nullable
@@ -61,11 +59,10 @@ public class CatalogFragment extends Fragment implements ProdutoAdapter.OnProdut
     private void inicializarComponentes(View view) {
         recyclerViewProdutos = view.findViewById(R.id.recyclerViewProdutos);
         txtSemProdutos = view.findViewById(R.id.txtSemProdutos);
-        produtoManager = ProdutoManager.getInstance();
     }
 
     private void configurarRecyclerView() {
-        produtoAdapter = new ProdutoAdapter(produtoManager.getProdutos(), this);
+        produtoAdapter = new ProdutoAdapter(new ArrayList<>(), this);
         recyclerViewProdutos.setLayoutManager(new LinearLayoutManager(requireContext()));
         recyclerViewProdutos.setAdapter(produtoAdapter);
     }
@@ -123,7 +120,6 @@ public class CatalogFragment extends Fragment implements ProdutoAdapter.OnProdut
 
     @Override
     public void onEditarClick(Produto produto) {
-        Toast.makeText(requireContext(), "Editando: " + produto.getTitulo(), Toast.LENGTH_SHORT).show();
         Intent intent = new Intent(requireContext(), NovoProdutoActivity.class);
         intent.putExtra("MODO_EDICAO", true);
         intent.putExtra("ID", produto.getId());

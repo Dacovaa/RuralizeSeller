@@ -1,4 +1,4 @@
-# Ruralize Ecosystem — Documentação Técnica
+# Ruralize Ecosystem — Documentação Técnica (Shop)
 
 Este documento fornece uma visão detalhada do projeto **RuralizeShop** e sua integração dentro do ecossistema Ruralize, que inclui a `ruralize_api` (backend) e o `RuralizeSeller` (aplicativo mobile para vendedores).
 
@@ -9,7 +9,7 @@ Este documento fornece uma visão detalhada do projeto **RuralizeShop** e sua in
 O **RuralizeShop** é a plataforma de marketplace voltada para o consumidor final (comprador). É uma aplicação web moderna construída com **Next.js 16**, focada na venda de produtos rurais, oferecendo uma experiência de compra fluida com suporte a múltiplos vendedores.
 
 ### Papéis no Ecossistema:
-- **RuralizeShop (Web):** Interface do comprador. Navegação de produtos, carrinho e checkout.
+- **RuralizeShop (Web):** Interface do comprador. Navegação de produtos, carrinho, busca, favoritos e checkout.
 - **RuralizeSeller (Mobile):** Interface do produtor/vendedor. Gestão de estoque, pedidos e perfil da empresa.
 - **Ruralize API (Backend):** Núcleo de processamento, banco de dados e autenticação que serve ambas as plataformas.
 
@@ -20,7 +20,7 @@ O **RuralizeShop** é a plataforma de marketplace voltada para o consumidor fina
 - **Framework:** Next.js 16 (App Router)
 - **Linguagem:** TypeScript 5
 - **Estilização:** Tailwind CSS 4 + Radix UI (via shadcn/ui)
-- **Estado Global:** React Context API (Cart, Auth, Products, Toast)
+- **Estado Global:** React Context API (Cart, Auth, Products, Favorites, Toast)
 - **Autenticação:** Firebase Auth + Custom API Integration
 - **Imagens:** Cloudinary (CDN)
 - **Ícones:** Lucide React
@@ -46,11 +46,6 @@ Campos utilizados no frontend:
   categoria: string;
   estoque: number;
   empresaId: string;   // Vínculo com o vendedor (RuralizeSeller)
-  options?: {          // Variações de produto (ex: tamanho, peso)
-    id: string;
-    name: string;
-    suboptions: { id: string; name: string; }[];
-  }[];
 }
 ```
 
@@ -60,42 +55,53 @@ Campos utilizados no frontend:
 | :--- | :--- | :--- |
 | `GET` | `/products` | Lista todos os produtos (Polling de 10s no Shop) |
 | `GET` | `/products/{empresaId}/{id}` | Detalhes de um produto específico |
-| `POST` | `/auth/signup` | Registro de novo usuário (integração Firebase + DB) |
-| `POST` | `/orders` | Finalização de compra (Checkout) |
+| `POST` | `/auth/signup` | Registro com campo adicional `role: "customer"`. **Nota:** O campo `cnpj` deve ser omitido para este papel para evitar erros de validação no backend. |
+| `POST` | `/orders` | Criação de pedidos após fluxo de checkout |
+| `GET` | `/orders/comprador/{uid}` | Histórico de pedidos para o comprador |
 
 ---
 
-## 4. Fluxos Críticos
+## 4. Funcionalidades e Fluxos Críticos
 
-### 4.1. Sincronização de Produtos
-O `ProductsProvider` utiliza um mecanismo de **Polling com ETag**. A cada 10 segundos, o frontend verifica se houve mudanças no catálogo. Se o status for `304 Not Modified`, os dados locais são mantidos, economizando banda.
+### 4.1. Busca e Filtros
+A página inicial implementa uma **Barra de Busca** por nome e filtros avançados:
+- **Filtro por Loja:** Carrega nomes reais via `/auth/stores`.
+- **Filtro por Categoria:** Sincronizado com o App Mobile. Categorias permitidas: `Rações e Concentrados`, `Suplementos e Vitaminas`, `Ferraduras e Ferramentas`, `Selaria e Equipamentos`, `Higiene e Cuidados`, `Medicamentos Veterinários`, `Acessórios para Estábulo` e `Outros`.
+A listagem é paginada (12 itens por página) para otimização de layout.
 
-### 4.2. Sistema de Carrinho
-- Gerenciado pelo `CartContext`.
-- Suporta múltiplos itens de diferentes vendedores (`empresaId`).
-- Persistência atual: Em memória (planejado para LocalStorage/API).
+### 4.2. Sistema de Favoritos (Wishlist)
+Utiliza o `FavoritesProvider` com persistência em **LocalStorage**. Permite ao usuário salvar produtos para visualização posterior na página `/favoritos`. (Implementação de backend futura).
 
-### 4.3. Autenticação e Registro
-1. O usuário se registra na página `/login`.
-2. O frontend chama a API externa `POST /auth/signup` enviando o perfil.
-3. Após sucesso na API, o Firebase Auth cria a credencial de acesso.
-4. O `AuthContext` monitora o estado do Firebase para manter a sessão ativa.
+### 4.3. Avaliações (Reviews)
+Sistema de prova social plenamente integrado. As notas e comentários são persistidos no banco de dados via endpoint `/reviews`, permitindo que o feedback seja visível para todos os usuários.
+
+### 4.4. Fluxo de Checkout e Pedidos (RF11/RF12)
+- **Carrinho Agrupado:** Os itens no carrinho são agora agrupados automaticamente por **Produtor/Loja**, permitindo uma visão clara de quais produtos vêm de cada vendedor.
+- **Checkout (RF11):** Permite selecionar método de pagamento e endereço.
+- **Dashboard do Consumidor:** A página `/perfil` agora exibe métricas em tempo real, como total de pedidos realizados e quantidade de itens favoritos.
 
 ---
 
-## 5. Estrutura do Repositório (Shop)
+## 5. UI/UX e Performance
+- **Skeleton Screens:** Implementados estados de carregamento pulsantes para a vitrine de produtos e avaliações, melhorando a percepção de performance.
+- **Feedback Visual:** Toasts integrados para todas as ações críticas (carrinho, perfil, pedidos).
+
+---
+
+## 6. Estrutura do Repositório (Shop)
 
 ```text
 app/
-├── (auth)/             # Lógica de login e proteção de rotas
-├── carrinho/           # Página de checkout
-├── components/         # Componentes de negócio (Navbar, ProductCard, etc.)
-├── context/            # Gerenciamento de estado (Auth, Cart, Products)
-├── produto/            # Rotas dinâmicas: [empresaId]/[id]
-├── services/           # Configuração Firebase e chamadas API
-└── types/              # Definições de tipos TypeScript
-components/ui/          # Primitivos visuais (shadcn/ui)
-public/                 # Assets estáticos e ícones
+├── (auth)/             # Proteção de rotas
+├── carrinho/           # Listagem do carrinho
+├── checkout/           # Fluxo de finalização (API integrada)
+├── favoritos/          # Wishlist (LocalStorage)
+├── perfil/             # Gestão de perfil (Firebase)
+├── pedidos/            # Histórico Real de Pedidos (API integrada)
+├── components/         # Componentes (Navbar, ProductCard, Reviews)
+├── context/            # Estado (Auth, Cart, Products, Favorites)
+├── produto/            # Detalhes e Reviews persistentes
+└── services/           # Firebase e API
 ```
 
 ---
@@ -105,38 +111,22 @@ public/                 # Assets estáticos e ícones
 Necessário configurar o `.env.local` com as seguintes chaves:
 
 ```env
-# API Backend
-NEXT_PUBLIC_API_URL=https://ruralize-api.example.com
-
-# Firebase Configuration
+NEXT_PUBLIC_API_URL=https://ruralize-api.vercel.app
 NEXT_PUBLIC_FIREBASE_API_KEY=...
 NEXT_PUBLIC_FIREBASE_AUTH_DOMAIN=...
 NEXT_PUBLIC_FIREBASE_PROJECT_ID=...
-NEXT_PUBLIC_FIREBASE_STORAGE_BUCKET=...
-NEXT_PUBLIC_FIREBASE_MESSAGING_SENDER_ID=...
-NEXT_PUBLIC_FIREBASE_APP_ID=...
+# ... demais chaves do Firebase
 ```
 
 ---
 
-## 7. Notas para os Outros Repositórios
-
-### Para `ruralize_api`:
-- O Shop espera o cabeçalho `ETag` na rota `/products` para otimização.
-- O payload de `/orders` segue a estrutura do `CartItem` (id, quantidade, preço unitário).
-
-### Para `RuralizeSeller`:
-- Os produtos criados no app mobile devem obrigatoriamente incluir `empresaId` e pelo menos uma imagem no Cloudinary para aparecerem corretamente no Shop.
-- A rota no Shop é construída como `/produto/${empresaId}/${productId}`.
-
----
-
 ## 📌 TO-DO / Próximos Passos (Web Shop)
-- [ ] **Checkout Fluido:** Implementar o formulário de pagamento e integração com a rota `/orders` da API.
-- [ ] **Persistência de Carrinho:** Mover o estado do carrinho para LocalStorage ou sincronizar com a API/Auth.
-- [ ] **Busca Global:** Melhorar o filtro de produtos por categoria e nome.
-- [ ] **Perfil do Comprador:** Criar a área logada para o comprador ver seus pedidos realizados.
-
----
-
-**Última Atualização:** Maio de 2026.
+- [x] **Checkout Fluido:** Concluído com integração real.
+- [x] **Área do Usuário:** Perfil e Meus Pedidos totalmente funcionais.
+- [x] **Busca e Filtros:** Home com busca e nomes REAIS de lojas (via `/auth/stores`).
+- [x] **Sistema de Favoritos:** Funcional via LocalStorage.
+- [x] **Persistência de Reviews:** Agora persistido no banco de dados via `/reviews`.
+- [x] **Notificações em Tempo Real (RF15):** Implementado `NotificationProvider` que ouve mudanças no Firestore e exibe Toasts instantâneos.
+- [x] **Chat Integrado (RF16):** Implementada interface de chat em tempo real na página do produto e central de mensagens em `/mensagens`.
+- [x] **Sincronização de Favoritos:** Agora persistido no banco de dados via `/favorites`. (API integrada)
+- [ ] **Testes de Aceitação (Cucumber):** Impleme

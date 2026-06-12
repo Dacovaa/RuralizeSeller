@@ -132,13 +132,18 @@ public class DeliveriesFragment extends Fragment implements EntregaAdapter.OnEnt
         Map<String, Integer> contador = new HashMap<>();
         for (Entrega entrega : entregas) {
             if (entrega == null) continue;
-            String status = entrega.getStatus() != null ? entrega.getStatus().toLowerCase(Locale.ROOT) : "pendente";
+            String status = entrega.getStatus() != null ? entrega.getStatus().toLowerCase(Locale.ROOT) : com.example.ruralize.utils.OrderStatus.PENDING;
             contador.put(status, contador.getOrDefault(status, 0) + 1);
         }
 
-        txtTotalPendentes.setText(String.valueOf(contador.getOrDefault("pendente", 0) + contador.getOrDefault("aguardando", 0)));
-        txtTotalEmRota.setText(String.valueOf(contador.getOrDefault("em rota", 0) + contador.getOrDefault("em trânsito", 0)));
-        txtTotalEntregues.setText(String.valueOf(contador.getOrDefault("entregue", 0)));
+        int pendentes = contador.getOrDefault(com.example.ruralize.utils.OrderStatus.PENDING, 0) 
+                      + contador.getOrDefault(com.example.ruralize.utils.OrderStatus.PREPARING, 0);
+        int emRota = contador.getOrDefault(com.example.ruralize.utils.OrderStatus.SHIPPED, 0);
+        int entregues = contador.getOrDefault(com.example.ruralize.utils.OrderStatus.DELIVERED, 0);
+
+        txtTotalPendentes.setText(String.valueOf(pendentes));
+        txtTotalEmRota.setText(String.valueOf(emRota));
+        txtTotalEntregues.setText(String.valueOf(entregues));
     }
 
     private void exibirLoading(boolean exibindo) {
@@ -153,11 +158,26 @@ public class DeliveriesFragment extends Fragment implements EntregaAdapter.OnEnt
     }
 
     private void mostrarDialogoStatus(Entrega entrega) {
-        String[] options = {"Pendente", "Em rota", "Entregue", "Cancelada"};
+        String[] options = {
+            com.example.ruralize.utils.OrderStatus.getLabel(com.example.ruralize.utils.OrderStatus.PENDING),
+            com.example.ruralize.utils.OrderStatus.getLabel(com.example.ruralize.utils.OrderStatus.PREPARING),
+            com.example.ruralize.utils.OrderStatus.getLabel(com.example.ruralize.utils.OrderStatus.SHIPPED),
+            com.example.ruralize.utils.OrderStatus.getLabel(com.example.ruralize.utils.OrderStatus.DELIVERED),
+            com.example.ruralize.utils.OrderStatus.getLabel(com.example.ruralize.utils.OrderStatus.CANCELLED)
+        };
+        
+        String[] values = {
+            com.example.ruralize.utils.OrderStatus.PENDING,
+            com.example.ruralize.utils.OrderStatus.PREPARING,
+            com.example.ruralize.utils.OrderStatus.SHIPPED,
+            com.example.ruralize.utils.OrderStatus.DELIVERED,
+            com.example.ruralize.utils.OrderStatus.CANCELLED
+        };
+
         new AlertDialog.Builder(requireContext())
                 .setTitle("Atualizar Status")
                 .setItems(options, (dialog, which) -> {
-                    String novoStatus = options[which].toLowerCase();
+                    String novoStatus = values[which];
                     atualizarStatusServidor(entrega, novoStatus);
                 })
                 .show();

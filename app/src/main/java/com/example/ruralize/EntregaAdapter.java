@@ -76,36 +76,18 @@ public class EntregaAdapter extends RecyclerView.Adapter<EntregaAdapter.EntregaV
             if (entrega == null) return;
 
             txtCliente.setText(entrega.getClienteNome() != null ? entrega.getClienteNome() : "Cliente");
-            txtStatus.setText(entrega.getStatus() != null ? entrega.getStatus() : "Indefinido");
+            txtStatus.setText(com.example.ruralize.utils.OrderStatus.getLabel(entrega.getStatus()));
             txtValor.setText(currencyFormat.format(entrega.getValorTotal()));
             txtEndereco.setText(entrega.getEndereco() != null ? entrega.getEndereco() : "Sem endereço");
             txtData.setText(entrega.getDataEntrega() != null ? entrega.getDataEntrega() : "--/--");
 
-            statusIndicator.setBackgroundResource(obterCorStatus(entrega.getStatus()));
+            statusIndicator.setBackgroundResource(com.example.ruralize.utils.OrderStatus.getColorResource(entrega.getStatus()));
 
             itemView.setOnClickListener(v -> {
                 if (listener != null) {
                     listener.onEntregaSelecionada(entrega);
                 }
             });
-        }
-
-        private int obterCorStatus(String status) {
-            if (status == null) return R.color.green_light;
-            switch (status.toLowerCase(Locale.ROOT)) {
-                case "entregue":
-                    return R.color.green_mid;
-                case "em rota":
-                case "em trânsito":
-                    return R.color.green_light;
-                case "pendente":
-                case "aguardando":
-                    return R.color.text_hint;
-                case "cancelada":
-                    return R.color.error_red;
-                default:
-                    return R.color.green_light;
-            }
         }
     }
 }

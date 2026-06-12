@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_edittext_simple"
+    android:background="@color/white"
+    android:elevation="2dp"
     android:padding="16dp"
     android:layout_marginBottom="12dp">
 
@@ -12,7 +13,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Produto"
-        android:textColor="@color/text_primary"
+        android:textColor="@color/green_dark"
         android:textStyle="bold"
         android:textSize="16sp" />
 
@@ -21,7 +22,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="0 un. vendidas"
-        android:textColor="@color/text_hint"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp"
         android:layout_marginTop="4dp" />
 
@@ -40,7 +41,7 @@
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Última venda em --"
-        android:textColor="@color/text_hint"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp"
         android:layout_marginTop="6dp" />
 

@@ -5,48 +5,48 @@
     android:layout_width="match_parent"
     android:layout_height="match_parent"
     android:padding="24dp"
-    android:background="@color/bg_cream">
+    android:background="@color/bg_ice">
 
     <!-- Botão Voltar -->
     <ImageView
         android:id="@+id/btnVoltar"
-        android:layout_width="24dp"
-        android:layout_height="24dp"
+        android:layout_width="32dp"
+        android:layout_height="32dp"
         android:src="@android:drawable/ic_menu_close_clear_cancel"
         android:contentDescription="Voltar"
         android:clickable="true"
         android:focusable="true"
-        android:tint="@color/green_dark"
+        app:tint="@color/green_dark"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
-        android:layout_marginTop="16dp"/>
+        android:layout_marginTop="8dp"/>
 
     <!-- Logo -->
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="100dp"
-        android:layout_height="100dp"
+        android:layout_width="120dp"
+        android:layout_height="120dp"
+        android:src="@drawable/ic_default_logo2"
         android:contentDescription="@string/app_name"
         app:layout_constraintTop_toTopOf="parent"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="32dp"/>
+        android:layout_marginTop="64dp"/>
 
     <!-- Marca -->
     <TextView
         android:id="@+id/tvBrand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Ruralize\nSELLER"
+        android:text="Ruralize SELLER"
         android:textAlignment="center"
-        android:textColor="@color/text_primary"
-        android:textSize="24sp"
-        android:lineSpacingExtra="2dp"
+        android:textColor="@color/green_dark"
+        android:textSize="18sp"
         android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/imgLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="8dp"/>
+        android:layout_marginTop="12dp"/>
 
     <!-- Título Recuperação -->
     <TextView
@@ -54,20 +54,21 @@
         style="@style/Ruralize.Headline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Recuperar Senha"
+        android:text="Recuperar acesso"
+        android:textColor="@color/green_dark"
         app:layout_constraintTop_toBottomOf="@id/tvBrand"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp"/>
+        android:layout_marginTop="32dp"/>
 
     <!-- Instruções -->
     <TextView
         android:id="@+id/tvInstrucoes"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:text="Informe seu CNPJ ou email cadastrado para recuperar sua senha."
+        android:text="Informe o e-mail cadastrado para receber as instruções de recuperação."
         android:textSize="14sp"
-        android:textColor="@color/green_dark"
+        android:textColor="@color/text_secondary"
         android:textAlignment="center"
         android:lineSpacingExtra="4dp"
         app:layout_constraintTop_toBottomOf="@id/tvRecuperacao"
@@ -75,54 +76,49 @@
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
 
-    <!-- Campo CNPJ ou Email -->
+    <!-- Campo Email -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilIdentificacao"
         style="@style/Ruralize.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="CNPJ ou Email"
+        android:hint="Seu e-mail"
         app:startIconDrawable="@android:drawable/ic_dialog_email"
         app:layout_constraintTop_toBottomOf="@id/tvInstrucoes"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="24dp">
+        android:layout_marginTop="32dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edtIdentificacao"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
-            android:inputType="text"
+            android:inputType="textEmailAddress"
+            android:textColor="@color/green_dark"
             android:maxLines="1"/>
     </com.google.android.material.textfield.TextInputLayout>
 
     <!-- Botão Recuperar -->
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnRecuperar"
+        style="@style/Ruralize.Button"
         android:layout_width="0dp"
         android:layout_height="54dp"
-        android:layout_marginTop="24dp"
-        android:background="@drawable/bg_button_primary"
-        android:text="Recuperar Senha"
-        android:textAllCaps="false"
-        android:textColor="@color/green_dark"
-        android:clickable="true"
-        android:focusable="true"
-        app:cornerRadius="24dp"
+        android:layout_marginTop="32dp"
+        android:text="Enviar e-mail"
+        android:textColor="@color/white"
         app:layout_constraintTop_toBottomOf="@id/tilIdentificacao"
         app:layout_constraintStart_toStartOf="@id/tilIdentificacao"
         app:layout_constraintEnd_toEndOf="@id/tilIdentificacao"/>
 
-    <!-- Texto Login -->
-    <TextView
+    <!-- Botão Login -->
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/tvLogin"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Lembrou sua senha? Fazer login"
-        android:textSize="14sp"
+        android:text="Lembrou a senha? Fazer login"
         android:textColor="@color/green_mid"
-        android:clickable="true"
-        android:focusable="true"
         app:layout_constraintTop_toBottomOf="@id/btnRecuperar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"

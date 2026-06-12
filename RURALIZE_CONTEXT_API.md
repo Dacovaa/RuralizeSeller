@@ -28,10 +28,27 @@ Produtos pertencentes a uma empresa específica.
 
 ### Subcoleção: `users/{empresaId}/orders` (Pedidos)
 Transações financeiras e de saída de estoque.
-- **Campos Principais:** `items` (Array contendo `productId` e `quantidade`), `total` (Valor total da venda), `createdAt`.
+- **Campos Principais:** 
+  - `items`: Array contendo `productId`, `titulo`, `quantidade`, `precoUnitario`.
+  - `total`: Valor total da venda.
+  - `pagamento`: Objeto contendo `metodo` (pix, card, boleto) e `transactionId`.
+  - `entrega`: Objeto contendo `tipo` (entrega, retirada) e `endereco` completo.
+  - `compradorId`: UID do usuário que realizou a compra.
+  - `status`: String. Valores: `pending` (pendente), `preparing` (em preparação), `shipped` (enviado), `delivered` (entregue).
+  - `createdAt`: Timestamp da criação.
+### Coleção: `chats` (RF16)
+Mensagens em tempo real entre comprador e vendedor.
+- **ID do Documento:** `${compradorId}_${empresaId}`
+- **Subcoleção `messages`:**
+  - `text`: Conteúdo da mensagem.
+  - `senderId`: UID de quem enviou.
+  - `createdAt`: serverTimestamp.
+  - `buyerName`: Nome do comprador (para o vendedor identificar).
+  - `empresaName`: Nome da empresa (para o comprador identificar).
+
+---
 
 ## 4. Módulos e Regras de Negócio
-
 ### 4.1. Auth Module (`/auth`)
 Gerencia o ciclo de vida dos usuários (empresas).
 - **Registro (SignUp):** Cria o usuário no Firebase Auth (para credenciais) e simultaneamente cria o documento na coleção `users` no Firestore. Inclui validação rigorosa de formato de **CNPJ** via decorator customizado (`@isValidCnpj`).
@@ -51,6 +68,8 @@ O módulo mais crítico para a consistência do ecossistema.
   - **Passo 3:** Subtrai a quantidade vendida do estoque do produto.
   - **Passo 4:** Grava o documento do pedido na subcoleção `orders`.
   - *Resultado:* Isso garante que problemas de concorrência (duas pessoas comprando o último item ao mesmo tempo) não quebrem o estoque.
+- **Visualização de Pedidos (RF13):** Endpoints para listar pedidos por empresa ou por comprador.
+- **Atualização de Status (RF14):** Endpoint utilizado pelo Seller para transicionar o pedido entre os estados (`preparing`, `shipped`, etc).
 - **Métricas de Vendas:** Endpoints para consolidar o total faturado, quantidade de pedidos e quantidade de itens vendidos por uma empresa específica.
 
 ### 4.4. Helpers & Utils
@@ -64,10 +83,9 @@ O módulo mais crítico para a consistência do ecossistema.
 
 ## 📌 TO-DO / Próximos Passos (Backend)
 - [x] **Módulo de Entregas:** Criar `DeliveriesModule`, controller e subcoleção no Firestore.
-- [x] **Módulo de Notificações:** Criar `NotificationsModule` e sistema de gatilhos (triggers) para estoque baixo e novas vendas. (Concluído com gatilhos automáticos no OrdersModule)
-- [x] **Documentação Swagger:** Implementar `@nestjs/swagger` para facilitar o mapeamento dos endpoints pelo App/Shop. (Acesse em /api)
-- [ ] **Webhooks de Pagamento:** (Futuro) Preparar integração para confirmação de pagamento vindo do Shop.
-
----
-
-Última atualização: Maio de 2026.
+- [x] **Módulo de Notificações (RF15/RF18):** Sistema de gatilhos e suporte a Push FCM integrado ao OrdersModule.
+- [x] **Documentação Swagger:** Implementar `@nestjs/swagger`. (Acesse em /api)
+- [x] **Módulo de Avaliações (Reviews):** Persistência de notas e comentários enviados pelo Shop.
+- [x] **Módulo de Favoritos:** Endpoint para sincronização de produtos salvos pelos compradores.
+- [x] **Endpoint de Lojas Públicas:** Rota `/auth/stores` para filtros do marketplace.
+- [x] **Estratégia de Testes BDD (Cucumber):** Suíte completa implementada com 13 cenários cobrindo Auth, Products, Orders, Deliveries, Review

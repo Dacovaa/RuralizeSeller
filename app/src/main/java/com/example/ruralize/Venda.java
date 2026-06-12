@@ -9,9 +9,12 @@ public class Venda {
     private final double valorTotal;
     private final double precoUnitario;
     private final String data;
+    private final String metodoPagamento;
+    private final String enderecoEntrega;
 
     public Venda(String id, String produtoId, String produtoTitulo, int quantidade,
-                 double valorTotal, double precoUnitario, String data) {
+                 double valorTotal, double precoUnitario, String data,
+                 String metodoPagamento, String enderecoEntrega) {
         this.id = id;
         this.produtoId = produtoId;
         this.produtoTitulo = produtoTitulo;
@@ -19,35 +22,19 @@ public class Venda {
         this.valorTotal = valorTotal;
         this.precoUnitario = precoUnitario;
         this.data = data;
+        this.metodoPagamento = metodoPagamento;
+        this.enderecoEntrega = enderecoEntrega;
     }
 
-    public String getId() {
-        return id;
-    }
-
-    public String getProdutoId() {
-        return produtoId;
-    }
-
-    public String getProdutoTitulo() {
-        return produtoTitulo;
-    }
-
-    public int getQuantidade() {
-        return quantidade;
-    }
-
-    public double getValorTotal() {
-        return valorTotal;
-    }
-
-    public double getPrecoUnitario() {
-        return precoUnitario;
-    }
-
-    public String getData() {
-        return data;
-    }
+    public String getId() { return id; }
+    public String getProdutoId() { return produtoId; }
+    public String getProdutoTitulo() { return produtoTitulo; }
+    public int getQuantidade() { return quantidade; }
+    public double getValorTotal() { return valorTotal; }
+    public double getPrecoUnitario() { return precoUnitario; }
+    public String getData() { return data; }
+    public String getMetodoPagamento() { return metodoPagamento; }
+    public String getEnderecoEntrega() { return enderecoEntrega; }
 }
 
 

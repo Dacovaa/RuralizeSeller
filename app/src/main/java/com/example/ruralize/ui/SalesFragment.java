@@ -98,23 +98,41 @@ public class SalesFragment extends Fragment {
 
         String uid = currentUser.getUid();
         SalesService salesService = RetrofitClient.getClient().create(SalesService.class);
-        salesService.getSalesSummary(uid).enqueue(new Callback<ResumoVendas>() {
+        salesService.getSalesSummary(uid).enqueue(new Callback<okhttp3.ResponseBody>() {
             @Override
-            public void onResponse(@NonNull Call<ResumoVendas> call, @NonNull Response<ResumoVendas> response) {
+            public void onResponse(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Response<okhttp3.ResponseBody> response) {
                 if (!isAdded()) return;
                 exibirLoading(false);
                 if (response.isSuccessful() && response.body() != null) {
-                    atualizarResumo(response.body());
+                    try {
+                        String responseBody = response.body().string();
+                        ResumoVendas resumo;
+                        if (responseBody.trim().startsWith("{")) {
+                            org.json.JSONObject json = new org.json.JSONObject(responseBody);
+                            double total = json.optDouble("total", 0);
+                            int totalOrders = json.optInt("totalOrders", 0);
+                            int qty = json.optInt("orderProductQuantity", 0);
+                            resumo = new ResumoVendas(total, totalOrders, qty);
+                        } else {
+                            double total = Double.parseDouble(responseBody.trim());
+                            resumo = new ResumoVendas(total, 0, 0); // fallback
+                        }
+                        atualizarResumo(resumo);
+                    } catch (Exception e) {
+                        android.util.Log.e("Sales", "Erro ao processar resumo de vendas", e);
+                        Toast.makeText(requireContext(), "Erro de processamento", Toast.LENGTH_SHORT).show();
+                    }
                 } else {
                     Toast.makeText(requireContext(), "Erro: " + response.code(), Toast.LENGTH_SHORT).show();
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<ResumoVendas> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Throwable t) {
                 if (!isAdded()) return;
                 exibirLoading(false);
-                Toast.makeText(requireContext(), "Erro ao carregar resumo: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                String errorMsg = t.getMessage() != null ? t.getMessage() : "Erro desconhecido";
+                Toast.makeText(requireContext(), "Erro ao carregar resumo: " + errorMsg, Toast.LENGTH_LONG).show();
             }
         });
     }

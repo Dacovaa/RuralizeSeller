@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_edittext_simple"
+    android:background="@color/white"
+    android:elevation="2dp"
     android:padding="16dp"
     android:layout_marginBottom="12dp">
 
@@ -31,7 +32,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Cliente"
-                android:textColor="@color/text_primary"
+                android:textColor="@color/green_dark"
                 android:textSize="16sp"
                 android:textStyle="bold" />
 
@@ -40,7 +41,7 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Status"
-                android:textColor="@color/text_hint"
+                android:textColor="@color/text_secondary"
                 android:textSize="12sp"
                 android:layout_marginTop="2dp" />
         </LinearLayout>
@@ -60,7 +61,7 @@
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
         android:text="Endereço de entrega"
-        android:textColor="@color/text_hint"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp"
         android:layout_marginTop="8dp" />
 
@@ -68,8 +69,8 @@
         android:id="@+id/txtDataEntrega"
         android:layout_width="match_parent"
         android:layout_height="wrap_content"
-        android:text="Entrega prevista: 21/09"
-        android:textColor="@color/text_hint"
+        android:text="Entrega prevista: --/--"
+        android:textColor="@color/text_secondary"
         android:textSize="12sp"
         android:layout_marginTop="4dp" />
 

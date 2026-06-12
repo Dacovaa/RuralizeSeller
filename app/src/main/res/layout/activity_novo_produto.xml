@@ -3,7 +3,7 @@
     xmlns:android="http://schemas.android.com/apk/res/android"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:background="#FFFDF6">
+    android:background="@color/bg_ice">
 
     <LinearLayout
         android:layout_width="match_parent"
@@ -24,7 +24,8 @@
                 android:layout_width="wrap_content"
                 android:layout_height="wrap_content"
                 android:text="Voltar"
-                android:textColor="#2D4A33"
+                android:textColor="@color/white"
+                android:backgroundTint="@color/green_dark"
                 android:background="@drawable/bg_button_primary"/>
 
             <TextView
@@ -34,7 +35,7 @@
                 android:layout_weight="1"
                 android:text="Insira os dados do produto"
                 android:textSize="20sp"
-                android:textColor="#2D4A33"
+                android:textColor="@color/green_dark"
                 android:textStyle="bold"
                 android:gravity="center" />
 
@@ -49,7 +50,7 @@
             android:layout_height="wrap_content"
             android:text="Adicione fotos do seu produto:"
             android:textSize="16sp"
-            android:textColor="#2D4A33"
+            android:textColor="@color/green_dark"
             android:textStyle="bold"
             android:layout_marginBottom="8dp" />
 
@@ -85,7 +86,7 @@
                 android:layout_weight="1"
                 android:text="➕ Adicionar Fotos"
                 android:textSize="14sp"
-                android:textColor="#4A7C59"
+                android:textColor="@color/green_mid"
                 android:background="@drawable/bg_button_outline_simple"
                 android:layout_marginEnd="8dp" />
 
@@ -96,8 +97,8 @@
                 android:gravity="center"
                 android:text="0/5 fotos"
                 android:textSize="12sp"
-                android:textColor="#666666"
-                android:background="@drawable/bg_button_outline_simple" />
+                android:textColor="@color/text_secondary"
+                android:background="@drawable/bg_edittext_simple" />
         </LinearLayout>
 
         <!-- Título -->
@@ -106,7 +107,7 @@
             android:layout_height="wrap_content"
             android:text="De um título ao anúncio:"
             android:textSize="14sp"
-            android:textColor="#2D4A33"
+            android:textColor="@color/text_primary"
             android:layout_marginBottom="4dp" />
 
         <EditText
@@ -114,6 +115,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Ex: Arroz Orgânico Premium"
+            android:textColor="@color/green_dark"
+            android:textColorHint="@color/text_secondary"
             android:background="@drawable/bg_edittext_simple"
             android:padding="12dp"
             android:layout_marginBottom="16dp" />
@@ -124,7 +127,7 @@
             android:layout_height="wrap_content"
             android:text="Preço:"
             android:textSize="14sp"
-            android:textColor="#2D4A33"
+            android:textColor="@color/text_primary"
             android:layout_marginBottom="4dp" />
 
         <EditText
@@ -133,6 +136,8 @@
             android:layout_height="wrap_content"
             android:hint="Ex: 25.90"
             android:inputType="numberDecimal"
+            android:textColor="@color/green_dark"
+            android:textColorHint="@color/text_secondary"
             android:background="@drawable/bg_edittext_simple"
             android:padding="12dp"
             android:layout_marginBottom="16dp" />
@@ -143,7 +148,7 @@
             android:layout_height="wrap_content"
             android:text="Quantidade em estoque:"
             android:textSize="14sp"
-            android:textColor="#2D4A33"
+            android:textColor="@color/text_primary"
             android:layout_marginBottom="4dp" />
 
         <EditText
@@ -152,6 +157,8 @@
             android:layout_height="wrap_content"
             android:hint="Ex: 50"
             android:inputType="number"
+            android:textColor="@color/green_dark"
+            android:textColorHint="@color/text_secondary"
             android:background="@drawable/bg_edittext_simple"
             android:padding="12dp"
             android:layout_marginBottom="16dp" />
@@ -162,7 +169,7 @@
             android:layout_height="wrap_content"
             android:text="Categoria:"
             android:textSize="14sp"
-            android:textColor="#2D4A33"
+            android:textColor="@color/text_primary"
             android:layout_marginBottom="4dp" />
 
         <Spinner
@@ -196,6 +203,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Ex: Peso"
+            android:textColor="@color/green_dark"
+            android:textColorHint="@color/text_secondary"
             android:background="@drawable/bg_edittext_simple"
             android:padding="12dp"
             android:layout_marginBottom="12dp" />
@@ -213,6 +222,8 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:hint="Ex: 1kg, 2kg, 5kg"
+            android:textColor="@color/green_dark"
+            android:textColorHint="@color/text_secondary"
             android:background="@drawable/bg_edittext_simple"
             android:padding="12dp"
             android:layout_marginBottom="24dp" />
@@ -223,7 +234,7 @@
             android:layout_height="wrap_content"
             android:text="Descreva seu produto:"
             android:textSize="14sp"
-            android:textColor="#2D4A33"
+            android:textColor="@color/text_primary"
             android:layout_marginBottom="4dp" />
 
         <EditText
@@ -233,6 +244,8 @@
             android:hint="Ex: Arroz orgânico cultivado sem agrotóxicos..."
             android:gravity="top"
             android:inputType="textMultiLine"
+            android:textColor="@color/green_dark"
+            android:textColorHint="@color/text_secondary"
             android:background="@drawable/bg_edittext_simple"
             android:padding="12dp"
             android:layout_marginBottom="24dp" />
@@ -241,9 +254,10 @@
             android:id="@+id/btnEnviar"
             android:layout_width="match_parent"
             android:layout_height="54dp"
-            android:text="Enviar produto"
+            android:text="Salvar Produto"
             android:textSize="16sp"
-            android:textColor="#2D4A33"
+            android:textColor="@color/white"
+            android:backgroundTint="@color/green_dark"
             android:background="@drawable/bg_button_primary" />
 
     </LinearLayout>

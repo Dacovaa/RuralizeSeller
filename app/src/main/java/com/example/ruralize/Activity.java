@@ -6,7 +6,7 @@ import android.os.Bundle;
 import android.util.Log;
 import android.widget.EditText;
 
-import androidx.activity.ComponentActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.button.MaterialButton;
@@ -38,7 +38,7 @@ import okhttp3.Response;
 import com.google.firebase.FirebaseApp;
 import com.google.firebase.auth.FirebaseAuth;
 
-public class Activity extends ComponentActivity {
+public class Activity extends AppCompatActivity {
 
     private TextInputEditText edtLoginEmail, edtSenha;
     private TextInputLayout tilCnpj, tilSenha;
@@ -94,7 +94,10 @@ public class Activity extends ComponentActivity {
 
     private void configurarCliques() {
         // Esqueceu a senha
-        findViewById(R.id.tvForgot).setOnClickListener(v -> new RecuperacaoSenhaActivity());
+        findViewById(R.id.tvForgot).setOnClickListener(v -> {
+            Intent intent = new Intent(Activity.this, RecuperacaoSenhaActivity.class);
+            startActivity(intent);
+        });
 
         // Botão Entrar
         btnEntrar.setOnClickListener(v -> validarELogar());
@@ -137,7 +140,7 @@ public class Activity extends ComponentActivity {
         mAuth.signInWithEmailAndPassword(email, senha)
                 .addOnCompleteListener(this, task -> {
                     if (task.isSuccessful()) {
-                        Intent intent = new Intent(Activity.this, DashboardActivity.class);
+                        Intent intent = new Intent(Activity.this, MainActivity.class);
                         startActivity(intent);
                         finish();
                     } else {

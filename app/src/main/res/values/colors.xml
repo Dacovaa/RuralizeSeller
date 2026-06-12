@@ -1,12 +1,14 @@
 <?xml version="1.0" encoding="utf-8"?>
 <resources>
     <color name="bg_ice">#F8FAFB</color>
+    <color name="bg_cream">#F8FAFB</color> <!-- Map to new ice color -->
     <color name="white">#FFFFFF</color>
     <color name="green_dark">#2F5D39</color>
     <color name="green_mid">#3D7C4A</color>
     <color name="green_light">#A8C7A1</color>
     <color name="text_primary">#2F5D39</color>
     <color name="text_secondary">#9AA39A</color>
+    <color name="text_hint">#9AA39A</color> <!-- Map to new secondary text -->
     <color name="error_red">#FF5252</color>
     <color name="surface_border">#E0E0E0</color>
 </resources>

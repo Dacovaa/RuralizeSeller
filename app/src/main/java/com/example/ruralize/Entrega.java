@@ -28,6 +28,9 @@ public class Entrega {
     @SerializedName("observacao")
     private final String observacao;
 
+    @SerializedName("compradorNome")
+    private final String compradorNome;
+
     public Entrega(String id,
                    String pedidoId,
                    String clienteNome,
@@ -35,7 +38,8 @@ public class Entrega {
                    String dataEntrega,
                    String endereco,
                    double valorTotal,
-                   String observacao) {
+                   String observacao,
+                   String compradorNome) {
         this.id = id;
         this.pedidoId = pedidoId;
         this.clienteNome = clienteNome;
@@ -44,6 +48,7 @@ public class Entrega {
         this.endereco = endereco;
         this.valorTotal = valorTotal;
         this.observacao = observacao;
+        this.compradorNome = compradorNome;
     }
 
     public String getId() {
@@ -76,6 +81,10 @@ public class Entrega {
 
     public String getObservacao() {
         return observacao;
+    }
+
+    public String getCompradorNome() {
+        return compradorNome;
     }
 }
 

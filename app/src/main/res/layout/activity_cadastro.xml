@@ -4,14 +4,14 @@
     xmlns:app="http://schemas.android.com/apk/res-auto"
     android:layout_width="match_parent"
     android:layout_height="match_parent"
-    android:padding="16dp"
-    android:background="@color/bg_cream">
+    android:padding="24dp"
+    android:background="@color/bg_ice">
 
     <!-- Logo menor -->
     <ImageView
         android:id="@+id/imgLogo"
-        android:layout_width="390dp"
-        android:layout_height="95dp"
+        android:layout_width="200dp"
+        android:layout_height="60dp"
         android:layout_marginTop="24dp"
         android:contentDescription="@string/app_name"
         android:src="@drawable/ic_default_logo2"
@@ -24,6 +24,10 @@
         android:id="@+id/tvBrand"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
+        android:text="Ruralize SELLER"
+        android:textColor="@color/green_dark"
+        android:textSize="14sp"
+        android:textStyle="bold"
         app:layout_constraintTop_toBottomOf="@id/imgLogo"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -35,41 +39,40 @@
         style="@style/Ruralize.Headline"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
-        android:text="Criar Conta"
-        android:textSize="18sp"
+        android:text="Criar sua conta"
+        android:textColor="@color/green_dark"
         app:layout_constraintTop_toBottomOf="@id/tvBrand"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
         android:layout_marginTop="16dp"/>
 
-    <!-- Campos em coluna -->
-    <!-- Nome da Empresa -->
+    <!-- Campos -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilEmpresa"
         style="@style/Ruralize.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Empresa"
+        android:hint="Nome da Empresa"
         app:layout_constraintTop_toBottomOf="@id/tvCadastro"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp">
+        android:layout_marginTop="24dp">
 
         <com.google.android.material.textfield.TextInputEditText
             android:id="@+id/edtEmpresa"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="textCapWords"
+            android:textColor="@color/green_dark"
             android:maxLines="1"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- CNPJ -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilCnpj"
         style="@style/Ruralize.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="CNPJ"
+        android:hint="CNPJ (apenas números)"
         app:layout_constraintTop_toBottomOf="@id/tilEmpresa"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -80,16 +83,16 @@
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
             android:inputType="number"
+            android:textColor="@color/green_dark"
             android:maxLength="14"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Email -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilEmail"
         style="@style/Ruralize.TextInput"
         android:layout_width="0dp"
         android:layout_height="wrap_content"
-        android:hint="Email"
+        android:hint="E-mail"
         app:layout_constraintTop_toBottomOf="@id/tilCnpj"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
@@ -99,10 +102,10 @@
             android:id="@+id/edtEmail"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/green_dark"
             android:inputType="textEmailAddress"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Senha -->
     <com.google.android.material.textfield.TextInputLayout
         android:id="@+id/tilSenha"
         style="@style/Ruralize.TextInput"
@@ -119,42 +122,32 @@
             android:id="@+id/edtSenha"
             android:layout_width="match_parent"
             android:layout_height="wrap_content"
+            android:textColor="@color/green_dark"
             android:inputType="textPassword"/>
     </com.google.android.material.textfield.TextInputLayout>
 
-    <!-- Botão Cadastrar -->
-
-    <!-- Texto Login -->
-
     <com.google.android.material.button.MaterialButton
         android:id="@+id/btnCadastrar"
+        style="@style/Ruralize.Button"
         android:layout_width="0dp"
-        android:layout_height="48dp"
+        android:layout_height="54dp"
         android:layout_marginTop="32dp"
-        android:background="@drawable/bg_button_primary"
-        android:clickable="true"
-        android:focusable="true"
         android:text="Cadastrar"
-        android:textAllCaps="false"
-        android:textColor="@color/green_dark"
-        app:cornerRadius="20dp"
-        app:layout_constraintEnd_toEndOf="@id/tilSenha"
-        app:layout_constraintHorizontal_bias="0.0"
-        app:layout_constraintStart_toStartOf="@id/tilSenha"
+        android:textColor="@color/white"
+        app:layout_constraintEnd_toEndOf="parent"
+        app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintTop_toBottomOf="@id/tilSenha" />
 
-    <TextView
+    <com.google.android.material.button.MaterialButton
         android:id="@+id/tvLogin"
+        style="@style/Widget.Material3.Button.TextButton"
         android:layout_width="wrap_content"
         android:layout_height="wrap_content"
         android:text="Já tem uma conta? Fazer login"
-        android:textSize="12sp"
         android:textColor="@color/green_mid"
-        android:clickable="true"
-        android:focusable="true"
         app:layout_constraintTop_toBottomOf="@id/btnCadastrar"
         app:layout_constraintStart_toStartOf="parent"
         app:layout_constraintEnd_toEndOf="parent"
-        android:layout_marginTop="12dp"/>
+        android:layout_marginTop="16dp"/>
 
 </androidx.constraintlayout.widget.ConstraintLayout>

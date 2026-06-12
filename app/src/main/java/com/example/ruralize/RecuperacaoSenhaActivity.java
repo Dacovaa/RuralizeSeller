@@ -3,14 +3,14 @@ package com.example.ruralize;
 import android.content.Intent;
 import android.os.Bundle;
 
-import androidx.activity.ComponentActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.button.MaterialButton;
 import com.google.android.material.textfield.TextInputEditText;
 import com.google.android.material.textfield.TextInputLayout;
 
-public class RecuperacaoSenhaActivity extends ComponentActivity {
+public class RecuperacaoSenhaActivity extends AppCompatActivity {
 
     private TextInputEditText edtIdentificacao;
     private TextInputLayout tilIdentificacao;

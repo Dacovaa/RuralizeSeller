@@ -3,7 +3,8 @@
     android:layout_width="match_parent"
     android:layout_height="wrap_content"
     android:orientation="vertical"
-    android:background="@drawable/bg_edittext_simple"
+    android:background="@color/white"
+    android:elevation="2dp"
     android:padding="16dp"
     android:layout_marginBottom="8dp">
 
@@ -16,10 +17,10 @@
         <!-- Imagem do produto -->
         <ImageView
             android:id="@+id/imgProduto"
-            android:layout_width="60dp"
-            android:layout_height="60dp"
+            android:layout_width="64dp"
+            android:layout_height="64dp"
             android:scaleType="centerCrop"
-            android:background="@color/white"
+            android:background="@color/bg_ice"
             android:src="@drawable/ic_placeholder"
             android:layout_marginEnd="12dp" />
 
@@ -36,7 +37,7 @@
                 android:layout_height="wrap_content"
                 android:text="Título do Produto"
                 android:textSize="16sp"
-                android:textColor="#2D4A33"
+                android:textColor="@color/green_dark"
                 android:textStyle="bold"
                 android:layout_marginBottom="4dp" />
 
@@ -46,7 +47,7 @@
                 android:layout_height="wrap_content"
                 android:text="R$ 0,00"
                 android:textSize="14sp"
-                android:textColor="#4A7C59"
+                android:textColor="@color/green_mid"
                 android:textStyle="bold"
                 android:layout_marginBottom="2dp" />
 
@@ -56,7 +57,7 @@
                 android:layout_height="wrap_content"
                 android:text="Estoque: 0"
                 android:textSize="12sp"
-                android:textColor="#666666" />
+                android:textColor="@color/text_secondary" />
 
             <TextView
                 android:id="@+id/txtCategoria"
@@ -64,7 +65,7 @@
                 android:layout_height="wrap_content"
                 android:text="Categoria"
                 android:textSize="12sp"
-                android:textColor="#666666" />
+                android:textColor="@color/text_secondary" />
 
         </LinearLayout>
 
@@ -74,24 +75,27 @@
             android:layout_height="wrap_content"
             android:orientation="vertical">
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnEditar"
-                android:layout_width="80dp"
-                android:layout_height="30dp"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Editar"
-                android:textSize="10sp"
-                android:background="@drawable/bg_button_outline_simple"
-                android:textColor="#4A7C59"
-                android:layout_marginBottom="4dp" />
+                android:textSize="12sp"
+                android:textColor="@color/green_mid"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
 
-            <Button
+            <com.google.android.material.button.MaterialButton
                 android:id="@+id/btnExcluir"
-                android:layout_width="80dp"
-                android:layout_height="30dp"
+                style="@style/Widget.Material3.Button.TextButton"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
                 android:text="Excluir"
-                android:textSize="10sp"
-                android:background="@drawable/bg_button_primary"
-                android:textColor="#2D4A33" />
+                android:textSize="12sp"
+                android:textColor="@color/error_red"
+                android:insetTop="0dp"
+                android:insetBottom="0dp" />
 
         </LinearLayout>
 
@@ -104,7 +108,7 @@
         android:layout_height="wrap_content"
         android:text="Descrição do produto..."
         android:textSize="12sp"
-        android:textColor="#666666"
+        android:textColor="@color/text_secondary"
         android:layout_marginTop="8dp"
         android:maxLines="2"
         android:ellipsize="end" />

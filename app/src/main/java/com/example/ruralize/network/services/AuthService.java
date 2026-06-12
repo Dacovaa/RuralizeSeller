@@ -12,9 +12,15 @@ public interface AuthService {
     @GET("auth/{uid}")
     Call<ResponseBody> getProfile(@Path("uid") String uid);
 
+    @retrofit2.http.POST("auth/signup")
+    Call<ResponseBody> signUp(@Body Map<String, Object> signUpData);
+
     @PATCH("auth/update")
     Call<ResponseBody> updateProfile(@Body Map<String, Object> profileData);
 
     @PATCH("auth/updatePassword")
     Call<ResponseBody> updatePassword(@Body Map<String, Object> passwordData);
+
+    @PATCH("auth/fcm-token")
+    Call<ResponseBody> updateFcmToken(@Body Map<String, Object> fcmData);
 }

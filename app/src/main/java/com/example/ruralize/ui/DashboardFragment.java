@@ -62,20 +62,42 @@ public class DashboardFragment extends Fragment {
 
         String uid = currentUser.getUid();
         SalesService salesService = RetrofitClient.getClient().create(SalesService.class);
-        salesService.getSalesSummary(uid).enqueue(new Callback<ResumoVendas>() {
+        salesService.getSalesSummary(uid).enqueue(new Callback<okhttp3.ResponseBody>() {
             @Override
-            public void onResponse(@NonNull Call<ResumoVendas> call, @NonNull Response<ResumoVendas> response) {
-                if (isAdded() && response.isSuccessful() && response.body() != null) {
-                    atualizarResumo(response.body());
-                } else if (isAdded()) {
-                    Toast.makeText(getContext(), "Erro ao carregar vendas: " + response.code(), Toast.LENGTH_SHORT).show();
+            public void onResponse(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Response<okhttp3.ResponseBody> response) {
+                if (isAdded()) {
+                    if (response.isSuccessful() && response.body() != null) {
+                        try {
+                            String responseBody = response.body().string();
+                            // Handle plain numbers or JSON
+                            ResumoVendas resumo;
+                            if (responseBody.trim().startsWith("{")) {
+                                org.json.JSONObject json = new org.json.JSONObject(responseBody);
+                                double total = json.optDouble("total", 0);
+                                int totalOrders = json.optInt("totalOrders", 0);
+                                int qty = json.optInt("orderProductQuantity", 0);
+                                resumo = new ResumoVendas(total, totalOrders, qty);
+                            } else {
+                                double total = Double.parseDouble(responseBody.trim());
+                                resumo = new ResumoVendas(total, 0, 0); // fallback
+                            }
+                            atualizarResumo(resumo);
+                        } catch (Exception e) {
+                            android.util.Log.e("Dashboard", "Erro ao processar resumo: " + e.getMessage(), e);
+                            Toast.makeText(getContext(), "Erro de formatação: " + e.getMessage(), Toast.LENGTH_SHORT).show();
+                        }
+                    } else {
+                        Toast.makeText(getContext(), "Erro ao carregar vendas: " + response.code(), Toast.LENGTH_SHORT).show();
+                    }
                 }
             }
 
             @Override
-            public void onFailure(@NonNull Call<ResumoVendas> call, @NonNull Throwable t) {
+            public void onFailure(@NonNull Call<okhttp3.ResponseBody> call, @NonNull Throwable t) {
                 if (isAdded()) {
-                    Toast.makeText(getContext(), "Erro de conexão: " + t.getMessage(), Toast.LENGTH_LONG).show();
+                    android.util.Log.e("Dashboard", "Erro de conexão", t);
+                    String errorMsg = t.getMessage() != null ? t.getMessage() : "Causa desconhecida";
+                    Toast.makeText(getContext(), "Erro de conexão: " + errorMsg, Toast.LENGTH_LONG).show();
                 }
             }
         });
@@ -102,21 +124,21 @@ public class DashboardFragment extends Fragment {
         notificationService.getNotifications(uid).enqueue(new Callback<List<Notificacao>>() {
             @Override
             public void onResponse(@NonNull Call<List<Notificacao>> call, @NonNull Response<List<Notificacao>> response) {
-                if (isAdded() && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
+                if (isAdded() && getContext() != null && response.isSuccessful() && response.body() != null && !response.body().isEmpty()) {
                     Notificacao last = response.body().get(0);
                     String title = last.getTitle();
                     String message = last.getMessage();
 
                     if (txtAtividadeRecente != null) {
                         txtAtividadeRecente.setText(title + ": " + message);
-                        txtAtividadeRecente.setTextColor(getResources().getColor(R.color.text_primary));
+                        txtAtividadeRecente.setTextColor(requireContext().getColor(R.color.text_primary));
                     }
                 }
             }
 
             @Override
             public void onFailure(@NonNull Call<List<Notificacao>> call, @NonNull Throwable t) {
-                // Silently fail for dashboard background activity
+                android.util.Log.e("Dashboard", "Erro ao carregar notificações", t);
             }
         });
     }

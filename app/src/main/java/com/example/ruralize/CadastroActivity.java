@@ -1,13 +1,11 @@
 package com.example.ruralize;
 
-import static androidx.core.content.ContextCompat.startActivity;
-
 import android.content.Intent;
 import android.os.Bundle;
 import android.util.Log;
 import android.widget.Toast;
 
-import androidx.activity.ComponentActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.appcompat.app.AlertDialog;
 
 import com.google.android.material.button.MaterialButton;
@@ -31,7 +29,7 @@ import okhttp3.Request;
 import okhttp3.RequestBody;
 import okhttp3.Response;
 
-public class CadastroActivity extends ComponentActivity {
+public class CadastroActivity extends AppCompatActivity {
 
     private TextInputEditText edtEmpresa, edtCnpj, edtEmail, edtSenha;
     private TextInputLayout tilEmpresa, tilCnpj, tilEmail, tilSenha;
@@ -173,70 +171,37 @@ public class CadastroActivity extends ComponentActivity {
         btnCadastrar.setEnabled(false);
         btnCadastrar.setText("Salvando...");
 
-        OkHttpClient client = new OkHttpClient.Builder()
-                .connectTimeout(15, TimeUnit.SECONDS)
-                .readTimeout(15, TimeUnit.SECONDS)
-                .build();
+        java.util.Map<String, Object> data = new java.util.HashMap<>();
+        data.put("email", email);
+        data.put("password", senha);
+        data.put("displayName", empresa);
+        data.put("cnpj", cnpj);
 
-        try {
-            JSONObject jsonBody = new JSONObject();
-            jsonBody.put("email", email);
-            jsonBody.put("password", senha);
-            jsonBody.put("displayName", empresa);
-            jsonBody.put("cnpj", cnpj);
+        com.example.ruralize.network.services.AuthService authService = com.example.ruralize.network.RetrofitClient.getClient().create(com.example.ruralize.network.services.AuthService.class);
+        authService.signUp(data).enqueue(new retrofit2.Callback<okhttp3.ResponseBody>() {
+            @Override
+            public void onResponse(@androidx.annotation.NonNull retrofit2.Call<okhttp3.ResponseBody> call, @androidx.annotation.NonNull retrofit2.Response<okhttp3.ResponseBody> response) {
+                runOnUiThread(() -> {
+                    btnCadastrar.setEnabled(true);
+                    btnCadastrar.setText("Cadastrar");
 
-            // Criar o request body
-            RequestBody body = RequestBody.create(
-                    jsonBody.toString(),
-                    MediaType.parse("application/json; charset=utf-8")
-            );
-
-            Request request = new Request.Builder()
-                    .url(ApiConfig.signUp())
-                    .post(body)
-                    .addHeader("Content-Type", "application/json")
-                    .build();
-
-            client.newCall(request).enqueue(new Callback() {
-                @Override
-                public void onFailure(Call call, IOException e) {
-                    runOnUiThread(() -> {
+                    if (response.isSuccessful()) {
+                        mostrarSucessoCadastro();
+                    } else {
                         mostrarErroCadastro();
-                        btnCadastrar.setEnabled(true);
-                        btnCadastrar.setText("Cadastrar");
-                    });
-                }
-                @Override
-                public void onResponse(Call call, Response response) throws IOException {
-                    final String responseBody = response.body().string();
-                    final int statusCode = response.code();
+                    }
+                });
+            }
 
-                    runOnUiThread(() -> {
-                        btnCadastrar.setEnabled(true);
-                        btnCadastrar.setText("Cadastrar");
-
-                        if (response.isSuccessful()) {
-                            mostrarSucessoCadastro();
-                        } else {
-                            try {
-                                JSONObject errorJson = new JSONObject(responseBody);
-                                String errorMessage = errorJson.optString("message", "Erro desconhecido");
-                                mostrarErroCadastro();
-                            } catch (JSONException e) {
-                                mostrarErroCadastro();
-                            }
-                        }
-                    });
-                }
-            });
-
-        } catch (JSONException e) {
-            runOnUiThread(() -> {
-                btnCadastrar.setEnabled(true);
-                btnCadastrar.setText("Cadastrar");
-                mostrarErroCadastro();
-            });
-        }
+            @Override
+            public void onFailure(@androidx.annotation.NonNull retrofit2.Call<okhttp3.ResponseBody> call, @androidx.annotation.NonNull Throwable t) {
+                runOnUiThread(() -> {
+                    btnCadastrar.setEnabled(true);
+                    btnCadastrar.setText("Cadastrar");
+                    mostrarErroCadastro();
+                });
+            }
+        });
     }
 }
 

@@ -17,7 +17,7 @@ import android.widget.Spinner;
 import android.widget.TextView;
 import android.widget.Toast;
 
-import androidx.activity.ComponentActivity;
+import androidx.appcompat.app.AppCompatActivity;
 import androidx.activity.result.ActivityResult;
 import androidx.activity.result.ActivityResultCallback;
 import androidx.activity.result.ActivityResultLauncher;
@@ -46,7 +46,7 @@ import retrofit2.Call;
 import retrofit2.Callback;
 import retrofit2.Response;
 
-public class NovoProdutoActivity extends ComponentActivity {
+public class NovoProdutoActivity extends AppCompatActivity {
 
     private int contadorFotos = 0;
     private static final int MAX_FOTOS = 5;
@@ -166,27 +166,7 @@ public class NovoProdutoActivity extends ComponentActivity {
                 }
             }
 
-            // Popula opções se existirem no ProdutoManager
-            if (produtoId != null) {
-                Produto p = ProdutoManager.getInstance().getProdutoPorId(produtoId);
-                if (p != null && p.getOptions() != null && !p.getOptions().isEmpty()) {
-                    Produto.Option firstOption = p.getOptions().get(0);
-                    edtOpcaoNome.setText(firstOption.getName());
-
-                    StringBuilder valores = new StringBuilder();
-                    java.util.List<Produto.Suboption> subs = firstOption.getSuboptions();
-                    if (subs != null) {
-                        for (int i = 0; i < subs.size(); i++) {
-                            valores.append(subs.get(i).getName());
-                            if (i < subs.size() - 1) {
-                                valores.append(", ");
-                            }
-                        }
-                    }
-                    edtOpcaoValores.setText(valores.toString());
-                }
-            }
-
+            // Popula opções se existirem
             btnEnviar = findViewById(R.id.btnEnviar);
             btnEnviar.setText("Salvar Alterações");
         }
